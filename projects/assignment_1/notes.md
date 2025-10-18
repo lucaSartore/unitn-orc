@@ -105,3 +105,90 @@ we let the proportional coefficient unchanged)
 
 [!image](./images/3.3.2.png)
 
+
+# 4
+
+## 4.1 Tuning task weights.
+
+At the first run the robot did not manage to stay standing, as it tilted sideways and ultimately fall.
+(not dissimilar to what the controller A did in the previous step)
+The solution was easy enough, updating the postural task from zero to some were between 1e-2 and 1e-3 
+worked fairly well.
+
+ultimately I saddled on 1e-3 and this is the tracking achieved:
+[!image](./images/4.1.png)
+
+So as you can see in the picture, the tracking is basically perfect
+
+
+### Effect of the different tasks
+
+To evaluate the effect that each task has on the robot's walking ability
+I disabled each single task by setting the relative weight to zero, and observe how the robot
+behave
+
+### Setting the Center of mass task to zero
+
+By setting the center of mass task to zero we can observe the robot tilting forward
+and ultimately falling. This is expected behaver, as if the robot's center of mass fall outside
+the foot's projection on the terrain the system will become unstable and the robot will fall.
+unless corrective actions are taken.
+
+
+### Setting the angular momentum task to zero
+
+Setting the angular momentum task to zero did not result in significant changes in the robot behavior.
+
+In theory the task should try to keep the angular momentum of the robot close to zero, by doing
+things such as moving the left arm forward when the right leg is moving forward (not dissimilar
+to what human do when running).
+In theory this should result a robot that is easier to control, however in practice
+we are moving at such a slow speed that this does not make a substation difference.
+
+I also tried to set the weight higher and the results is a robot that moves the arms
+extensively to balance the angular momentum, but is overall less table than the default
+configuration as the high weight on the angular momentum task end up undermining the other
+tasks.
+
+### Setting the foot motion task to zero
+
+The foot motion task is perhaps the most intuitive one, If there is no control signal
+that tels the robot to move the feet than it simply won't start walking.
+And this intuition is confirmed with a simple run
+
+### Setting the foot contact task to zero
+
+The foot contact task is another easy to explain one.
+If we set the task weight to zero we can see the robot
+moving downward in the beginning of the simulation as if it was
+placed in a soft floor. The task is therefore necessary to guaranteed
+the thoughtfulness of the simulation (otherwise we would see the robot 
+with the feet inside the floor) and is therefore understandable that the 
+weight of the task are so high
+
+
+### Setting the joint posture task to zero
+
+The posture task is important as it incentivize the robot to keep a "natural" posture
+instead of allowing it to do whatever it wants as long as it respect the other tasks.
+
+Setting it to zero results in some really unnatural leg and arm movements, with the 
+ultimate result of the robot falling. The problem here is that keeping
+a natural posture allow the robot to be more flexible with the joint given
+that they are far from singularity, as well as keeping the robot posture up straight
+in a more stable position.
+
+
+## 4.2 Tuning the parameters for a the 30cm walk
+
+The first run of the robot walking with a 30cm set size resulted in the 
+robot tilting backward (as if it was doing the limbo), this and this
+ultimately resulted in the robot falling.
+
+To fix this issue I gradually increased the posture task weight
+from 1e-3 all the way up to 5e-2.
+After this minor change the robot was no longer tilting backward
+but it started falling forward in the last step of the trajectory.
+
+To fix this I set increased the weight of the center of mass task
+from one to 10 and ultimately solved the issue.
