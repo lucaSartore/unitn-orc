@@ -26,8 +26,8 @@ com_acc_ref = np.empty((3, N)) * nan
 com_acc_des = np.empty((3, N)) * nan # acc_des = acc_ref - Kp*pos_err - Kd*vel_err
 
 offset = tsid.robot.com(tsid.formulation.data())
-amp = ### TODO ###
-f   = ### TODO ###
+amp = np.asarray([0, 0.05, 0])
+f   = np.asarray([0, 1, 0])
 two_pi_f = 2 * np.pi * f
 two_pi_f_amp = two_pi_f * amp
 two_pi_f_squared_amp = two_pi_f * two_pi_f_amp
