@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from typing import Literal
 import matplotlib.pyplot as plt
 import numpy as np
 import casadi as cs
@@ -92,6 +93,9 @@ def create_decision_variables(N, nx: int, nu, lbx, ubx):
     return opti, X, U, S, W
 
 
+# squared norm function
+squared_norm = lambda x: x.T @ x
+
 # notes:
 # NJ = number of joints
 # N = number of time-steps
@@ -136,14 +140,12 @@ def define_running_cost_and_dynamics(opti: cs.Opti, X, U, S, W, N, dt, x_init,
         opti.subject_to(ee_des[1] == ee_pos[1])
         opti.subject_to(ee_des[2] == ee_pos[2])
 
-        # squared norm function
-        sn = lambda x: x.T @ x
 
         # TODO: Add velocity tracking cost term
-        cost += w_v * sn(qdk)
+        cost += w_v * squared_norm(qdk)
 
         # TODO: Add actuation effort cost term
-        cost += w_a * sn(U[k])
+        cost += w_a * squared_norm(U[k])
 
         # TODO: Add path progression speed cost term
         cost += w_w * W[k]**2
@@ -153,10 +155,10 @@ def define_running_cost_and_dynamics(opti: cs.Opti, X, U, S, W, N, dt, x_init,
         # TODO: Add discrete-time dynamics constraint
 
         # q and qd at next time step
-        qk2 = X[k][:nq]
-        qdk2 = X[k][nq:]
+        qk2 = X[k+1][:nq]
+        qdk2 = X[k+1][nq:]
 
-        opti.subject_to(qk2 == qk + dt * qdk2)
+        opti.subject_to(qk2 == qk + dt * qdk)
         opti.subject_to(qdk2 == qdk + dt * U[k])
         
 
@@ -316,7 +318,7 @@ if __name__ == "__main__":
         plt.plot([tt[0], tt[-1]], [q_sol[i,0], q_sol[i,0]], ':', label='straight line', alpha=0.7)
         plt.plot(tt, q_sol[i,:].T, label=f'q {i}', alpha=0.7)
     plt.xlabel('Time [s]')
-    plt.ylabel('Joint [rad/s]')
+    plt.ylabel('Joint [rad]')
     plt.legend()
     plt.grid(True)
 
