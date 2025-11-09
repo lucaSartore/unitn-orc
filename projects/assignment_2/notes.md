@@ -19,4 +19,4 @@ this lead to 2 issues:
  2) that division made the problem more complex, and resulted in way poorer solutions (with bad tracking, and time that was above the baseline of 0.2)
  to solve this changed the equations in:
  ....
- and we got good tracking with a substantial time reduction
+ and we got good tracking with a substantial time reduction (0.06s)

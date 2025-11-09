@@ -1,0 +1,224 @@
+\documentclass[12pt]{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{geometry}
+\usepackage{float}
+\geometry{margin=0.5in}
+
+\title{Optimization and Learning for Robot Control: Assignment 2}
+\author{Luca Sartore - 256154}
+\date{}
+
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+% ############################ part 1 ##############################
+\newpage
+\section{Path Tracking}
+
+In this first experiment we see how the simplest form of path tracking perform, as a baseline.
+
+\subsection{Numerical results}
+\begin{figure}[H]
+\centering
+\begin{tabular}{cc}
+  \includegraphics[width=80mm]{images/base/s_vs_time.png} &   \includegraphics[width=80mm]{images/base/w_vs_time.png} \\
+(a) The control variable ``s'' & (b) The control variable ``w'' \\[6pt]
+ \includegraphics[width=80mm]{images/base/joint_velocity.png} &   \includegraphics[width=80mm]{images/base/joint_position.png} \\
+(c) The joint velocity & (d) the joint position \\[6pt]
+ \includegraphics[width=80mm]{images/base/ee_path.png} &   \includegraphics[width=80mm]{images/base/ee_pos_vs_time.png} \\
+(e) Tracking on floor plane & (f) Tracking on X Y Z \\[6pt]
+\multicolumn{2}{c}{\includegraphics[width=65mm]{images/base/joint_torque.png} }\\
+\multicolumn{2}{c}{(g) The joint torques}
+\end{tabular}
+\caption{experiment result of ``Path Tracking''}
+\end{figure}
+
+
+\subsection{Observation on results}
+
+We can see in sub-figures \textbf{e} and \textbf{f} that the tracing is perfect (as we would expect from path tracking)
+
+from the sub-figures \textbf{a} and \textbf{b} we can instead note that the optimizer has decided to go slower (aka having a lower
+\textbf{w} value) at the beginning, and at the end of the movement. that seem to be the most critical zones to guaranteed good tracking
+
+% ############################ part 2 ##############################
+\newpage
+
+\section{Path Tracking + Cyclical Constrain}
+
+In this experiment we tried to make the robot to perform a cyclical task, by adding a penalty that minimize the 
+difference between the initial state and the final state of the robot.
+
+
+\subsection{Numerical results}
+\begin{figure}[H]
+\centering
+\begin{tabular}{cc}
+  \includegraphics[width=80mm]{images/cyclical/s_vs_time.png} &   \includegraphics[width=80mm]{images/cyclical/w_vs_time.png} \\
+(a) The control variable ``s'' & (b) The control variable ``w'' \\[6pt]
+ \includegraphics[width=80mm]{images/cyclical/joint_velocity.png} &   \includegraphics[width=80mm]{images/cyclical/joint_position.png} \\
+(c) The joint velocity & (d) the joint position \\[6pt]
+ \includegraphics[width=80mm]{images/cyclical/ee_path.png} &   \includegraphics[width=80mm]{images/cyclical/ee_pos_vs_time.png} \\
+(e) Tracking on floor plane & (f) Tracking on X Y Z \\[6pt]
+\multicolumn{2}{c}{\includegraphics[width=65mm]{images/cyclical/joint_torque.png} }\\
+\multicolumn{2}{c}{(g) The joint torques}
+\end{tabular}
+\caption{experiment result of ``Path Tracking + Cyclical Constrain''}
+\end{figure}
+
+\subsection{Observation on results}
+
+Here the results are mixed. The joit velocity are decend, infact we can see how
+they approach zero by the end of the simulation, however the 
+joint position are not much different from the one of the previous experiment,
+indicating that the solver is not really able to end in the same position he started. and
+also keeping a perfect tracking. (that is required given in path tracking we use equality
+constraints)
+
+% ############################ part 3 ##############################
+\newpage
+\section{Trajectory Tracking + Cyclical Constrain}
+
+In this section we applyed trajectory tracking instead of path tracking to observe the difference
+with the previous experiment. We still maintain the so called ``cyclical constrain''
+
+
+\subsection{Numerical results}
+\begin{figure}[H]
+\centering
+\begin{tabular}{cc}
+  \includegraphics[width=80mm]{images/trajectory-tracking/s_vs_time.png} &   \includegraphics[width=80mm]{images/trajectory-tracking/w_vs_time.png} \\
+(a) The control variable ``s'' & (b) The control variable ``w'' \\[6pt]
+ \includegraphics[width=80mm]{images/trajectory-tracking/joint_velocity.png} &   \includegraphics[width=80mm]{images/trajectory-tracking/joint_position.png} \\
+(c) The joint velocity & (d) the joint position \\[6pt]
+ \includegraphics[width=80mm]{images/trajectory-tracking/ee_path.png} &   \includegraphics[width=80mm]{images/trajectory-tracking/ee_pos_vs_time.png} \\
+(e) Tracking on floor plane & (f) Tracking on X Y Z \\[6pt]
+\multicolumn{2}{c}{\includegraphics[width=65mm]{images/trajectory-tracking/joint_torque.png} }\\
+\multicolumn{2}{c}{(g) The joint torques}
+\end{tabular}
+\caption{experiment result of ``Trajectory Tracking + Cyclical Constrain''}
+\end{figure}
+
+\subsection{Observation on results}
+
+Here we can see in sub-figure \textbf{e} how the tracing looses a bit of
+accuracy, however we can also see in the subfigures \textbf{c} and \textbf{d}
+how both joint velocity and joint position revert back to the original state
+as the simulation approaches the end. This is because by choosing trajectory
+tracking we are allowing the robot to do smaller deviation form his original path,
+and this make it possible to optimize other tasks (such as the ``cyclical'' one).
+
+To achieve this we had to change the ``equality'' constraints on the path, and make
+that a ``cost''.
+if we had left them as an equality, while removing the flexibility of 
+selecting \textbf{w} the optimizer would almost certaintly fail (unless the tracking 
+task was trivial).
+
+% ############################ part 4 ##############################
+\newpage
+
+\section{Path Tracking + Cyclical Constrain + Min Time Formulation}
+
+In this experiment we introduced a min-time Formulation constrain to the
+previous path tracking task (by letting the solver optimize the time step)
+
+\subsection{Numerical results}
+\begin{figure}[H]
+\centering
+\begin{tabular}{cc}
+  \includegraphics[width=80mm]{images/cyclical-min-time/s_vs_time.png} &   \includegraphics[width=80mm]{images/cyclical-min-time/w_vs_time.png} \\
+(a) The control variable ``s'' & (b) The control variable ``w'' \\[6pt]
+ \includegraphics[width=80mm]{images/cyclical-min-time/joint_velocity.png} &   \includegraphics[width=80mm]{images/cyclical-min-time/joint_position.png} \\
+(c) The joint velocity & (d) the joint position \\[6pt]
+ \includegraphics[width=80mm]{images/cyclical-min-time/ee_path.png} &   \includegraphics[width=80mm]{images/cyclical-min-time/ee_pos_vs_time.png} \\
+(e) Tracking on floor plane & (f) Tracking on X Y Z \\[6pt]
+\multicolumn{2}{c}{\includegraphics[width=65mm]{images/cyclical-min-time/joint_torque.png} }\\
+\multicolumn{2}{c}{(g) The joint torques}
+\end{tabular}
+\caption{experiment result of ``Path Tracking + Cyclical Constrain + Min Time Formulation''}
+\end{figure}
+
+\subsection{Observation on results}
+
+We can see how the results beryl change from the previous path-tracking Formulation.
+and the reason is easily understood by printing the time-step value after the optimization process.
+
+We noted that the solver was actually tacking more time than the previous Formulation
+(using a time step of 24ms instead of 20).
+
+The simple solution to this issue was to increase the weight of the running cost (see next section)
+
+
+
+% ############################ part 5 ##############################
+\newpage
+
+\section{Path Tracking + Cyclical Constrain + Min Time Formulation + Tuned Weights}
+
+This experiment has the same setup of the previous section, but the running cost's weight
+was set to 1 instead of 0.1.
+
+
+\subsection{Numerical results}
+\begin{figure}[H]
+\centering
+\begin{tabular}{cc}
+  \includegraphics[width=80mm]{images/cyclical-min-time-2/s_vs_time.png} &   \includegraphics[width=80mm]{images/cyclical-min-time-2/w_vs_time.png} \\
+(a) The control variable ``s'' & (b) The control variable ``w'' \\[6pt]
+ \includegraphics[width=80mm]{images/cyclical-min-time-2/joint_velocity.png} &   \includegraphics[width=80mm]{images/cyclical-min-time-2/joint_position.png} \\
+(c) The joint velocity & (d) the joint position \\[6pt]
+ \includegraphics[width=80mm]{images/cyclical-min-time-2/ee_path.png} &   \includegraphics[width=80mm]{images/cyclical-min-time-2/ee_pos_vs_time.png} \\
+(e) Tracking on floor plane & (f) Tracking on X Y Z \\[6pt]
+\multicolumn{2}{c}{\includegraphics[width=65mm]{images/cyclical-min-time-2/joint_torque.png} }\\
+\multicolumn{2}{c}{(g) The joint torques}
+\end{tabular}
+\caption{experiment result of ``Path Tracking + Cyclical Constrain + Min Time Formulation + Tuned Weights''}
+\end{figure}
+
+\subsection{Observation on results}
+
+Here the solver managed to complete the trajectory in a much quicker time,
+as the time-step was optimize to be 14ms.
+Here the charts look similar to the previous ones, wit the only notable difference 
+being that the torques, accelerations and velocities are all slily higher,
+indicating that the controller has decided get an higher penalty
+in the velocities, accelerations, and controls input in order to 
+minimize the penalty on the time-step
+
+
+
+% ############################ part 6 ##############################
+\newpage
+\section{Trajectory Tracking + Cyclical Constrain + Min Time Formulation}
+
+In this experiment apply the same min-time Formulation that we made in the previous
+section to trajectory Tracking.
+
+\subsection{Numerical results}
+\begin{figure}[H]
+\centering
+\begin{tabular}{cc}
+  \includegraphics[width=80mm]{images/trajectory-tracking-min-time/s_vs_time.png} &   \includegraphics[width=80mm]{images/trajectory-tracking-min-time/w_vs_time.png} \\
+(a) The control variable ``s'' & (b) The control variable ``w'' \\[6pt]
+ \includegraphics[width=80mm]{images/trajectory-tracking-min-time/joint_velocity.png} &   \includegraphics[width=80mm]{images/trajectory-tracking-min-time/joint_position.png} \\
+(c) The joint velocity & (d) the joint position \\[6pt]
+ \includegraphics[width=80mm]{images/trajectory-tracking-min-time/ee_path.png} &   \includegraphics[width=80mm]{images/trajectory-tracking-min-time/ee_pos_vs_time.png} \\
+(e) Tracking on floor plane & (f) Tracking on X Y Z \\[6pt]
+\multicolumn{2}{c}{\includegraphics[width=65mm]{images/trajectory-tracking-min-time/joint_torque.png} }\\
+\multicolumn{2}{c}{(g) The joint torques}
+\end{tabular}
+\caption{experiment result of ``Trajectory Tracking + Cyclical Constrain + Min Time Formulation''}
+\end{figure}
+
+\subsection{Observation on results}
+
+This are by far the best result we got.
+We can see how the tracking is almost perfect
+
+
+\end{document}
