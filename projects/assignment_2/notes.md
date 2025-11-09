@@ -8,6 +8,9 @@ ex 3: the ciclical task is still not perfect, but a bit better. this time increa
 ex 4 part 1: the time actually does not decrease wrt the baseline (0.2)
 however increasing the relative tasks's weight does decries the time to a more reasonable 0.14
 
+by default the time is set to 0.24s
+changing the weight of the time task from e-1 to e-0 decrease the time to 0.14
+
 ex 4 part 2: following the original instructions provided by the sk+1 = sk + dt * wk result in having to 
 set wi to 1/N/dt.
 this lead to 2 issues:
