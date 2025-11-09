@@ -92,7 +92,6 @@ def create_decision_variables(N, nx: int, nu, lbx, ubx):
         W += [opti.variable(1)]
 
     dt = opti.variable(1)
-    opti.set_initial(dt, 0.02)
     return opti, X, U, S, W, dt
 
 
@@ -128,6 +127,7 @@ def define_running_cost_and_dynamics(opti: cs.Opti, X, U, S, W, N, dt, x_init,
     # constraints on the dt boundry
     opti.subject_to(dt >= 0.001)
     opti.subject_to(dt <= 0.1)
+    # opti.subject_to(dt == 0.02)
 
     cost = 0.0
     for k in range(N):
@@ -179,8 +179,8 @@ def define_running_cost_and_dynamics(opti: cs.Opti, X, U, S, W, N, dt, x_init,
         
 
         # TODO: Add path variable dynamics constraint
-        opti.subject_to(S[k+1] == S[k] + W[k] * dt)
-        w = 1/(N)/dt
+        opti.subject_to(S[k+1] == S[k] + W[k])
+        w = 1/(N)
         opti.subject_to(W[k] == w) 
         
         

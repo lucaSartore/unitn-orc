@@ -165,8 +165,8 @@ def define_running_cost_and_dynamics(opti: cs.Opti, X, U, S, W, N, dt, x_init,
         
 
         # TODO: Add path variable dynamics constraint
-        opti.subject_to(S[k+1] == S[k] + W[k] * dt)
-        w = 1/(N)/dt
+        opti.subject_to(S[k+1] == S[k] + W[k])
+        w = 1/(N)
         opti.subject_to(W[k] == w) 
         
         
