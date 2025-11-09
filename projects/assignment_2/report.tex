@@ -218,7 +218,25 @@ section to trajectory Tracking.
 \subsection{Observation on results}
 
 This are by far the best result we got.
-We can see how the tracking is almost perfect
+We can see how the tracking is almost perfect, even tho we are using trajectory tracking instead of path tracking.
+The total time required to make the maneuver is also quite low (with a time-step that was around 6ms).
+
+However we can see from sub-plot \textbf{c} and \textbf{d} that the robot does not 
+return to the original state quite as well as our previous best result did.
+
+Joint velocity and accelerations are higher than previous tests, but not extremely higher.
+This mey sound absurd at first, however we can make sense of it by locking at the joint position
+sub-plot \textbf{d}.
+We see how this chart look a bit different from the rest, and this imply that the robot is using a different
+posture, to achieve the task.
+And we can assume that this posture is better for a quick execution.
+
+Why the solver did not use this posture for previous optimization tasks is hard to say, as
+solvers like the one we used often function as a ``black box'' however we can hypnotize
+that this configuration was not used in path tracking because it made it impossible to track perfectly,
+and it also was not used during the previous trajectory tracking test, because the ``cyclical constrain''
+had an higher weight relatively to the others, and maybe this configuration was not chosen 
+because it provided a worst end position.
 
 
 \end{document}
