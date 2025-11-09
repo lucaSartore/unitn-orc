@@ -20,7 +20,7 @@
 \newpage
 \section{Path Tracking}
 
-In this first experiment we see how the simplest form of path tracking perform, as a baseline.
+In this first experiment, we see how the simplest form of path tracking performs, as a baseline.
 
 \subsection{Numerical results}
 \begin{figure}[H]
@@ -41,17 +41,17 @@ In this first experiment we see how the simplest form of path tracking perform, 
 
 \subsection{Observation on results}
 
-We can see in sub-figures \textbf{e} and \textbf{f} that the tracing is perfect (as we would expect from path tracking)
+We can see in sub-figures \textbf{e} and \textbf{f} that the tracking is perfect (as we would expect from path tracking).
 
-from the sub-figures \textbf{a} and \textbf{b} we can instead note that the optimizer has decided to go slower (aka having a lower
-\textbf{w} value) at the beginning, and at the end of the movement. that seem to be the most critical zones to guaranteed good tracking
+From the sub-figures \textbf{a} and \textbf{b}, we can instead note that the optimizer has decided to go slower (aka having a lower
+\textbf{w} value) at the beginning and at the end of the movement. These seem to be the most critical zones to guarantee good tracking.
 
 % ############################ part 2 ##############################
 \newpage
 
 \section{Path Tracking + Cyclical Constrain}
 
-In this experiment we tried to make the robot to perform a cyclical task, by adding a penalty that minimize the 
+In this experiment, we tried to make the robot perform a cyclical task by adding a penalty that minimizes the
 difference between the initial state and the final state of the robot.
 
 
@@ -73,19 +73,19 @@ difference between the initial state and the final state of the robot.
 
 \subsection{Observation on results}
 
-Here the results are mixed. The joit velocity are decend, infact we can see how
-they approach zero by the end of the simulation, however the 
-joint position are not much different from the one of the previous experiment,
-indicating that the solver is not really able to end in the same position he started. and
-also keeping a perfect tracking. (that is required given in path tracking we use equality
-constraints)
+Here the results are mixed. The joint velocities are decent; in fact, we can see how
+they approach zero by the end of the simulation. However, the
+joint positions are not much different from those of the previous experiment,
+indicating that the solver is not really able to end in the same position it started, while
+also keeping perfect tracking (which is required, given in path tracking we use equality
+constraints).
 
 % ############################ part 3 ##############################
 \newpage
 \section{Trajectory Tracking + Cyclical Constrain}
 
-In this section we applyed trajectory tracking instead of path tracking to observe the difference
-with the previous experiment. We still maintain the so called ``cyclical constrain''
+In this section, we applied trajectory tracking instead of path tracking to observe the difference
+with the previous experiment. We still maintained the so-called ``cyclical constraint''.
 
 
 \subsection{Numerical results}
@@ -106,17 +106,17 @@ with the previous experiment. We still maintain the so called ``cyclical constra
 
 \subsection{Observation on results}
 
-Here we can see in sub-figure \textbf{e} how the tracing looses a bit of
-accuracy, however we can also see in the subfigures \textbf{c} and \textbf{d}
+Here we can see in sub-figure \textbf{e} how the tracking loses a bit of
+accuracy. However, we can also see in the sub-figures \textbf{c} and \textbf{d}
 how both joint velocity and joint position revert back to the original state
 as the simulation approaches the end. This is because by choosing trajectory
-tracking we are allowing the robot to do smaller deviation form his original path,
-and this make it possible to optimize other tasks (such as the ``cyclical'' one).
+tracking, we are allowing the robot to make smaller deviations from its original path,
+and this makes it possible to optimize other tasks (such as the ``cyclical'' one).
 
-To achieve this we had to change the ``equality'' constraints on the path, and make
-that a ``cost''.
-if we had left them as an equality, while removing the flexibility of 
-selecting \textbf{w} the optimizer would almost certaintly fail (unless the tracking 
+To achieve this, we had to change the ``equality'' constraints on the path and make
+them a ``cost''.
+If we had left them as an equality while removing the flexibility of
+selecting \textbf{w}, the optimizer would almost certainly fail (unless the tracking
 task was trivial).
 
 % ############################ part 4 ##############################
@@ -124,8 +124,8 @@ task was trivial).
 
 \section{Path Tracking + Cyclical Constrain + Min Time Formulation}
 
-In this experiment we introduced a min-time Formulation constrain to the
-previous path tracking task (by letting the solver optimize the time step)
+In this experiment, we introduced a min-time Formulation constraint to the
+previous path tracking task (by letting the solver optimize the time step).
 
 \subsection{Numerical results}
 \begin{figure}[H]
@@ -145,13 +145,13 @@ previous path tracking task (by letting the solver optimize the time step)
 
 \subsection{Observation on results}
 
-We can see how the results beryl change from the previous path-tracking Formulation.
-and the reason is easily understood by printing the time-step value after the optimization process.
+We can see how the results barely change from the previous path-tracking Formulation.
+And the reason is easily understood by printing the time-step value after the optimization process.
 
-We noted that the solver was actually tacking more time than the previous Formulation
+We noted that the solver was actually taking more time than the previous Formulation
 (using a time step of 24ms instead of 20).
 
-The simple solution to this issue was to increase the weight of the running cost (see next section)
+The simple solution to this issue was to increase the weight of the running cost (see next section).
 
 
 
@@ -183,12 +183,12 @@ was set to 1 instead of 0.1.
 \subsection{Observation on results}
 
 Here the solver managed to complete the trajectory in a much quicker time,
-as the time-step was optimize to be 14ms.
-Here the charts look similar to the previous ones, wit the only notable difference 
-being that the torques, accelerations and velocities are all slily higher,
-indicating that the controller has decided get an higher penalty
-in the velocities, accelerations, and controls input in order to 
-minimize the penalty on the time-step
+as the time-step was optimized to be 14ms.
+Here the charts look similar to the previous ones, with the only notable difference
+being that the torques, accelerations, and velocities are all slightly higher,
+indicating that the controller has decided to get a higher penalty
+in the velocities, accelerations, and control inputs in order
+to minimize the penalty on the time-step.
 
 
 
@@ -196,7 +196,7 @@ minimize the penalty on the time-step
 \newpage
 \section{Trajectory Tracking + Cyclical Constrain + Min Time Formulation}
 
-In this experiment apply the same min-time Formulation that we made in the previous
+In this experiment, we apply the same min-time Formulation that we made in the previous
 section to trajectory Tracking.
 
 \subsection{Numerical results}
@@ -217,26 +217,26 @@ section to trajectory Tracking.
 
 \subsection{Observation on results}
 
-This are by far the best result we got.
-We can see how the tracking is almost perfect, even tho we are using trajectory tracking instead of path tracking.
+These are by far the best results we got.
+We can see how the tracking is almost perfect, even though we are using trajectory tracking instead of path tracking.
 The total time required to make the maneuver is also quite low (with a time-step that was around 6ms).
 
-However we can see from sub-plot \textbf{c} and \textbf{d} that the robot does not 
+However, we can see from sub-plot \textbf{c} and \textbf{d} that the robot does not
 return to the original state quite as well as our previous best result did.
 
 Joint velocity and accelerations are higher than previous tests, but not extremely higher.
-This mey sound absurd at first, however we can make sense of it by locking at the joint position
+This may sound absurd at first, however, we can make sense of it by looking at the joint position
 sub-plot \textbf{d}.
-We see how this chart look a bit different from the rest, and this imply that the robot is using a different
-posture, to achieve the task.
+We see how this chart looks a bit different from the equivalent charts in previous experiments, and this implies that the robot is using a different
+posture to achieve the task.
 And we can assume that this posture is better for a quick execution.
 
 Why the solver did not use this posture for previous optimization tasks is hard to say, as
-solvers like the one we used often function as a ``black box'' however we can hypnotize
+solvers like the one we used often function as a ``black box''. However, we can hypothesize
 that this configuration was not used in path tracking because it made it impossible to track perfectly,
-and it also was not used during the previous trajectory tracking test, because the ``cyclical constrain''
-had an higher weight relatively to the others, and maybe this configuration was not chosen 
-because it provided a worst end position.
+and it also was not used during the previous trajectory tracking test, because the ``cyclical constraint''
+had a higher weight relative to the others, and maybe this configuration was not chosen
+because it provided a worse end position.
 
 
 \end{document}
