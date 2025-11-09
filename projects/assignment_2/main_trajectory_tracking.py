@@ -120,7 +120,7 @@ def define_running_cost_and_dynamics(opti: cs.Opti, X, U, S, W, N, dt, x_init,
     
 
     # TODO: Constrain the final path variable S[-1] to be 1.0
-    # opti.subject_to(S[-1] == 1.0)
+    opti.subject_to(S[-1] == 1.0)
 
     cost = 0.0
     for k in range(N):

@@ -90,7 +90,9 @@ def create_decision_variables(N, nx: int, nu, lbx, ubx):
     for _ in range(N):
         U += [opti.variable(nu)]
         W += [opti.variable(1)]
+
     dt = opti.variable(1)
+    opti.set_initial(dt, 0.02)
     return opti, X, U, S, W, dt
 
 
@@ -109,7 +111,7 @@ squared_norm = lambda x: x.T @ x
 # w_v, w_a and w_w are the weights of the tasks to minimize (velocity, acceleration and control input)
 
 def define_running_cost_and_dynamics(opti: cs.Opti, X, U, S, W, N, dt, x_init,
-                                     c_path, r_path, w_v, w_a, w_w, w_dt,
+                                     c_path, r_path, w_v, w_a, w_w, w_p, w_dt,
                                      tau_min, tau_max):
     
     # TODO: Constrain the initial state X[0] to be equal to the initial condition x_init
@@ -123,13 +125,11 @@ def define_running_cost_and_dynamics(opti: cs.Opti, X, U, S, W, N, dt, x_init,
     # TODO: Constrain the final path variable S[-1] to be 1.0
     opti.subject_to(S[-1] == 1.0)
 
-    
     # constraints on the dt boundry
     opti.subject_to(dt >= 0.001)
     opti.subject_to(dt <= 0.1)
 
     cost = 0.0
-
     for k in range(N):
 
         # running cost attributed to time step
@@ -149,10 +149,12 @@ def define_running_cost_and_dynamics(opti: cs.Opti, X, U, S, W, N, dt, x_init,
                              c_path[1] + r_path*0.5*np.sin(4*np.pi*S[k]),
                              c_path[2]])
 
-        # TODO: Constrain ee_pos to lie on the desired path in x, y, z
-        opti.subject_to(ee_des[0] == ee_pos[0])
-        opti.subject_to(ee_des[1] == ee_pos[1])
-        opti.subject_to(ee_des[2] == ee_pos[2])
+        # TODO: Minimize the ee position's error wrt the desired trajectory
+        cost += w_p * (
+            (ee_pos[0] - ee_des[0]) ** 2 +
+            (ee_pos[1] - ee_des[1]) ** 2 +
+            (ee_pos[2] - ee_des[2]) ** 2
+        )
 
 
         # TODO: Add velocity tracking cost term
@@ -178,7 +180,9 @@ def define_running_cost_and_dynamics(opti: cs.Opti, X, U, S, W, N, dt, x_init,
 
         # TODO: Add path variable dynamics constraint
         opti.subject_to(S[k+1] == S[k] + W[k] * dt)
-        opti.subject_to(W[k] > 0)
+        w = 1/(N)/dt
+        opti.subject_to(W[k] == w) 
+        
         
 
         # TODO: Constrain the joint torques to remain within [tau_min, tau_max]
@@ -189,12 +193,13 @@ def define_running_cost_and_dynamics(opti: cs.Opti, X, U, S, W, N, dt, x_init,
         
     return cost
 
-def define_terminal_cost_and_constraints(opti, X, S, c_path, r_path, w_final):
+def define_terminal_cost_and_constraints(opti, X, S, c_path, r_path, w_p, w_final):
     # TODO: Compute the end-effector position at the final state
     q_last = X[-1][:nq]
     ee_pos = fk(q_last)
     
 
+    cost = 0
     # TODO: Constrain ee_pos to lie on the desired path in x, y, z at the end
     
     # note: we could simplify the expression as S[-1] must be 1, but I think this is more readable
@@ -202,36 +207,38 @@ def define_terminal_cost_and_constraints(opti, X, S, c_path, r_path, w_final):
                          c_path[1] + r_path*0.5*np.sin(4*np.pi*S[-1]),
                          c_path[2]])
 
-    opti.subject_to(ee_des[0] == ee_pos[0])
-    opti.subject_to(ee_des[1] == ee_pos[1])
-    opti.subject_to(ee_des[2] == ee_pos[2])
+    cost += w_p * (
+        (ee_pos[0] - ee_des[0]) ** 2 +
+        (ee_pos[1] - ee_des[1]) ** 2 +
+        (ee_pos[2] - ee_des[2]) ** 2
+    )
 
-    cost = w_final * squared_norm(X[0] - X[-1])
+    cost += w_final * squared_norm(X[0] - X[-1])
     return cost
 
 
 
 def create_and_solve_ocp(N, nx, nq, lbx, ubx, dt, x_init,
-                         c_path, r_path, w_v, w_a, w_w, w_dt, w_final,
+                         c_path, r_path, w_v, w_a, w_w, w_p, w_dt, w_final,
                          tau_min, tau_max):
     opti, X, U, S, W, dt = create_decision_variables(N, nx, nq, lbx, ubx)
     running_cost = define_running_cost_and_dynamics(opti, X, U, S, W, N, dt, x_init,
-                                                    c_path, r_path, w_v, w_a, w_w, w_dt,
+                                                    c_path, r_path, w_v, w_a, w_w, w_p, w_dt,
                                                     tau_min, tau_max)
-    terminal_cost = define_terminal_cost_and_constraints(opti, X, S, c_path, r_path, w_final)
+    terminal_cost = define_terminal_cost_and_constraints(opti, X, S, c_path, r_path, w_p, w_final)
     opti.minimize(running_cost + terminal_cost)
 
-    opts = {
-        "ipopt.print_level": 0,
-        "print_time": 0,
-        "ipopt.tol": 1e-4,
-        "ipopt.hessian_approximation":"limited-memory",
-    }
+    opts = {"ipopt.print_level": 0, "print_time": 0, "ipopt.tol": 1e-4}
 
     opti.solver("ipopt", opts)
 
     t0 = time.time()
-    sol = opti.solve()
+    try:
+        sol = opti.solve()
+    except RuntimeError:
+        print(opti.debug.value)
+        raise
+
     print(f"Solver time: {time.time() - t0:.2f}s")
     return sol, X, U, S, W, dt
 
@@ -291,17 +298,16 @@ if __name__ == "__main__":
 
     sol, X, U, S, W, dt_opt = create_and_solve_ocp(
         N, nx, nq, lbx, ubx, dt, x_init, c_path, r_path,
-        10**log_w_v, 10**log_w_a, 10**log_w_w, 10 ** log_w_dt, 10**log_w_final, 
+        10**log_w_v, 10**log_w_a, 10**log_w_w, 10**log_w_p, 10**log_w_dt, 10**log_w_final,
         tau_min, tau_max
     )
     q_sol, dq_sol, u_sol, tau, ee, ee_des, s_sol, w_sol, dt_sol = extract_solution(sol, X, U, S, W, dt_opt)
 
     print("Displaying robot motion...")
-
-    print(f"final time-steps size: {dt_sol}")
-
     for i in range(3):
         display_motion(q_sol, ee_des)
+
+    print(f"final time-steps size: {dt_sol}")
 
     # Plot results
     tt = np.linspace(0, (N + 1) * dt, N + 1)
