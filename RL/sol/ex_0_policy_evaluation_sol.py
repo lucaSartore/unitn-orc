@@ -7,7 +7,9 @@ Created on Tue Nov 23 05:30:56 2021
 """
 import numpy as np
 
-def policy_eval(env, gamma, pi, V, maxIters, threshold, plot=False, nprint=1000):
+from RL.dpendulum import DPendulum
+
+def policy_eval(env: DPendulum, gamma, pi, V, maxIters, threshold, plot=False, nprint=1000):
     ''' Policy evaluation algorithm 
         env: environment used for evaluating the policy
         gamma: discount factor
@@ -22,13 +24,27 @@ def policy_eval(env, gamma, pi, V, maxIters, threshold, plot=False, nprint=1000)
     # IMPLEMENT POLICY EVALUATION HERE
     
     # Iterate for at most maxIters loops
-    # You can make a copy of the V table using np.copy
-    # The number of states is env.nx
-    # Use env.reset(x) to set the robot state
-    # To simulate the system use env.step(u) which returns the next state and the cost
-    # Update V-Table with Bellman's equation
-    # Check for convergence using the difference between the current and previous V table
-    # You can plot the V table with the function env.plot_V_table(V)
-    # At the env return the V table
-    
+    for i in range(maxIters):
+        v_old = np.copy(V)
+        for state in range(env.nx):
+
+            # Use env.reset(x) to set the robot state
+            env.reset(state)
+            # To simulate he system use env.step(u) which returns the next state and the cost
+            if callable(pi):
+                action = pi(env, state)
+            else:
+                action = pi[state]
+            nextState, cost = env.step(action)
+
+            # Update V-Table with Bellman's equation
+            V[state] = cost + gamma * v_old[nextState]
+
+        # Check for convergence using the difference between the current and previous V table
+        if np.max(np.abs(V - v_old)) < threshold:
+            break
+
+        if i % nprint == 0 and plot:
+            env.plot_V_table(V)
+
     return V
