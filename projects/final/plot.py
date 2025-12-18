@@ -66,6 +66,9 @@ def plot_agent_trajectory_with_cost(
     
     y_lim_min = pos_min - y_margin
     y_lim_max = pos_max + y_margin
+
+    y_lim_min = -2.1
+    y_lim_max = 1.9
     
     # 2. Calculate Cost Data for the Position Range
     positions_space = np.linspace(y_lim_min, y_lim_max, 200)
