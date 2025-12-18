@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, List
 import numpy as np
 import casadi as cs
 from plot import plot_agent_trajectory_with_cost
@@ -56,14 +56,17 @@ class System(ABC):
     def cost_function(self, x, u):
         return 0.5 * u * u + (x - 1.9) * (x - 1.0) * (x - 0.6) * (x + 0.5) * (x + 1.2) * (x + 2.1) 
 
-    def plot_last_solution(self):
+    def plot_last_solution(self, **kwargs):
         assert self.last_solution != None, "solution has not being correctly saved"
+        self.plot_multiple_solutions([self.last_solution], **kwargs)
 
+    def plot_multiple_solutions(self, solutions: List[Solution], **kwargs):
         timestamps = np.linspace(0,(self.horizon+1) * self.dt, self.horizon+1)
         plot_agent_trajectory_with_cost(
             timestamps,
-            [self.last_solution.pos_vector],
-            lambda x: self.cost_function(x,0)
+            [s.pos_vector for s in solutions],
+            lambda x: self.cost_function(x,0),
+            **kwargs,
         )
 
     @abstractmethod
@@ -97,7 +100,9 @@ class System(ABC):
         u_vec = np.asarray(u_vec, dtype=np.float64)
         s_vec = np.asarray(s_vec, dtype=np.float64)
         
-        self.last_solution = Solution(s_vec, u_vec, float(cost))
+        pos_vec = s_vec[:,0]
+        
+        self.last_solution = Solution(pos_vec, u_vec, float(cost))
         return self.last_solution
 
 
@@ -193,14 +198,9 @@ class InertiaSystem(System):
     # during plotting
     def remove_velocity_component_from_solution(self, sol: Solution) -> Solution:
         sol.pos_vector = sol.pos_vector[:,0]
-        print(sol.pos_vector.shape)
         self.last_solution = sol
         return sol
 
     def _get_solution(self, initial_state: list[float]) -> Solution:
         sol = super()._get_solution(initial_state)
-        return self.remove_velocity_component_from_solution(sol)
-
-    def evaluate_policy(self, policy: Policy, initial_state: list[float]) -> Solution:
-        sol = super().evaluate_policy(policy, initial_state)
         return self.remove_velocity_component_from_solution(sol)

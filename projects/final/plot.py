@@ -14,6 +14,7 @@ def plot_agent_trajectory_with_cost(
     cost_function: Callable[[float], float],
     labels: List[str] | None = None,
     y_margin_percent: float = 0.05,
+    y_range: tuple[float, float] | None = None,
     figsize: Tuple[float, float] = (9, 6),
     title: str = 'Agent Trajectories and Associated Positional Cost Profile'
 ):
@@ -62,13 +63,13 @@ def plot_agent_trajectory_with_cost(
     pos_max = np.max(all_positions)
     pos_range = pos_max - pos_min
     
-    y_margin = pos_range * y_margin_percent
-    
-    y_lim_min = pos_min - y_margin
-    y_lim_max = pos_max + y_margin
+    if y_range != None:
+        y_lim_min, y_lim_max = y_range
+    else:
+        y_margin = pos_range * y_margin_percent
+        y_lim_min = pos_min - y_margin
+        y_lim_max = pos_max + y_margin
 
-    y_lim_min = -2.1
-    y_lim_max = 1.9
     
     # 2. Calculate Cost Data for the Position Range
     positions_space = np.linspace(y_lim_min, y_lim_max, 200)
