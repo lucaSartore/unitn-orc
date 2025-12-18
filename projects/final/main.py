@@ -4,9 +4,10 @@ import casadi as cs
 from time import time as clock
 from plot import plot_agent_trajectory_with_cost
 import random
-from system import System
+from system import SimpleSystem, System, InertiaSystem
 
 
-s = System()
-print(s._get_cost(1.1))
+# s = SimpleSystem()
+s =  InertiaSystem()
+print(s._get_solution(-1.1))
 s.plot_last_solution()
