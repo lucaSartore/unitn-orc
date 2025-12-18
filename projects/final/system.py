@@ -5,8 +5,8 @@ import casadi as cs
 from plot import plot_agent_trajectory_with_cost
 from dataclasses import dataclass
 import random
-
 from numpy.typing import NDArray
+from parameters import NUM_SOLUTION_PER_DATAPOINT
 
 @dataclass
 class Solution:
@@ -105,7 +105,7 @@ class System(ABC):
         self.last_solution = Solution(pos_vec, u_vec, float(cost))
         return self.last_solution
 
-    def get_solution(self, initial_state: list[float], num_attempts: int = 10) -> Solution:
+    def get_solution(self, initial_state: list[float], num_attempts: int = NUM_SOLUTION_PER_DATAPOINT) -> Solution:
         self.last_solution = min(
             [self._get_solution(initial_state) for _ in range(num_attempts)],
             key= lambda x: x.score

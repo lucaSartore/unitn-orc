@@ -1,3 +1,4 @@
+from parameters import EXPLORATION_RANGE
 from system import GreedyPolicy, SimpleSystem, Solution, InertiaSystem
 
 def main():
@@ -25,7 +26,7 @@ def test_all_systems():
     s.plot_multiple_solutions(
         solutions,
         labels= labels,
-        y_range= (-2.1, 1.9)
+        y_range= EXPLORATION_RANGE
     )
 
 
