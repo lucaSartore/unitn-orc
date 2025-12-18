@@ -3,8 +3,8 @@ from system import GreedyPolicy, SimpleSystem, Solution, InertiaSystem
 from datetime import datetime
 
 def main():
-    # test_all_systems()
-    performance_test()
+    test_all_systems()
+    # performance_test()
 
 def performance_test():
     N = 40

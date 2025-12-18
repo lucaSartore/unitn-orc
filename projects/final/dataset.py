@@ -7,7 +7,9 @@ import multiprocessing
 import random
 from system import InertiaSystem, SimpleSystem
 
-class RobotDataset(ABC, Dataset):
+DATASET_TYPE = tuple[np.typing.NDArray[np.float64], np.float64]
+
+class RobotDataset(ABC, Dataset[DATASET_TYPE]):
     def __init__(self, cached=True):
         self.input: np.ndarray = np.array([]).reshape(0, 0)
         """
@@ -84,8 +86,9 @@ class RobotDataset(ABC, Dataset):
     def __len__(self):
         return self.output.shape[0]
 
-    def __getitem__(self, idx: int):
-        # Returning slices from NumPy arrays
+    def __getitem__(self, idx: int) -> DATASET_TYPE:
+        if len(self.input.shape) == 1:
+            return self.input[idx], self.output[idx]
         return self.input[:, idx], self.output[idx]
 
 
