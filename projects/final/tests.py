@@ -1,8 +1,19 @@
 from parameters import EXPLORATION_RANGE
 from system import GreedyPolicy, SimpleSystem, Solution, InertiaSystem
+from datetime import datetime
 
 def main():
-    test_all_systems()
+    # test_all_systems()
+    performance_test()
+
+def performance_test():
+    N = 40
+    s =  InertiaSystem()
+    t = datetime.now()
+    for _ in range(N):
+        s.get_solution([-1.1, 0])
+    dt = datetime.now() - t
+    print(f"time to generate {N} solutions is: {dt}")
 
 def test_all_systems():
     solutions: list[Solution] = []

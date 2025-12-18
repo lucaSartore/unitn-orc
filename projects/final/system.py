@@ -6,7 +6,7 @@ from plot import plot_agent_trajectory_with_cost
 from dataclasses import dataclass
 import random
 from numpy.typing import NDArray
-from parameters import NUM_SOLUTION_PER_DATAPOINT
+from parameters import EXPLORATION_RANGE, NUM_SOLUTION_PER_DATAPOINT
 
 @dataclass
 class Solution:
@@ -35,7 +35,7 @@ class System(ABC):
         self,
         nx: int,
         nu: int,
-        s_initialization_range: tuple[float, float] = (-2.1,1.9),
+        s_initialization_range: tuple[float, float] = EXPLORATION_RANGE,
         dt: float = 0.02,
         horizon: int = 150
     ):
@@ -174,7 +174,7 @@ class System(ABC):
 
 class SimpleSystem(System):
 
-    def __init__(self, s_initialization_range: tuple[float, float] = (-2.1, 1.9), dt: float = 0.02, horizon: int = 150):
+    def __init__(self, s_initialization_range: tuple[float, float] = EXPLORATION_RANGE, dt: float = 0.02, horizon: int = 150):
         super().__init__(1, 1, s_initialization_range, dt, horizon)
 
     def state_transition_function(self, s, u):
@@ -184,7 +184,7 @@ class SimpleSystem(System):
 
 class InertiaSystem(System):
 
-    def __init__(self, s_initialization_range: tuple[float, float] = (-2.1, 1.9), dt: float = 0.02, horizon: int = 150):
+    def __init__(self, s_initialization_range: tuple[float, float] = EXPLORATION_RANGE, dt: float = 0.02, horizon: int = 150):
         super().__init__(2, 1, s_initialization_range, dt, horizon)
 
     def cost_function(self, x, u):
