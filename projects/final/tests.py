@@ -6,13 +6,13 @@ def main():
 def test_all_systems():
     solutions: list[Solution] = []
     s = SimpleSystem()
-    solutions.append(s._get_solution([-1.1]))
+    solutions.append(s.get_solution([-1.1]))
     s.plot_last_solution()
     solutions.append(s.evaluate_policy(GreedyPolicy(), [-1.1]))
     s.plot_last_solution()
 
     s =  InertiaSystem()
-    solutions.append(s._get_solution([-1.1, 0]))
+    solutions.append(s.get_solution([-1.1, 0]))
     s.plot_last_solution()
     solutions.append(s.evaluate_policy(GreedyPolicy(), [-1.1,0]))
     s.plot_last_solution()

@@ -105,8 +105,12 @@ class System(ABC):
         self.last_solution = Solution(pos_vec, u_vec, float(cost))
         return self.last_solution
 
-
-
+    def get_solution(self, initial_state: list[float], num_attempts: int = 10) -> Solution:
+        self.last_solution = min(
+            [self._get_solution(initial_state) for _ in range(num_attempts)],
+            key= lambda x: x.score
+        )
+        return self.last_solution
 
     def _get_solution(self, initial_state: list[float]) -> Solution:
 
