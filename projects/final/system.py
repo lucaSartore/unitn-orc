@@ -15,9 +15,22 @@ class Solution:
     score: float
 
 
-# class System(ABC):
-class System:
+class Policy(ABC):
+    @abstractmethod
+    def run(self, x) -> float:
+        pass
 
+# just a dummy policy used for testing
+class GreedyPolicy(Policy):
+    def __init__(self, target = -1.8, effort = 4):
+        self.target = target
+        self.effort = effort
+
+    def run(self, x: list[float]) -> float:
+        position = x[0]
+        return -self.effort if position > self.target else self.effort
+
+class System(ABC):
     def __init__(
         self,
         nx: int,
@@ -64,7 +77,33 @@ class System:
         """
         pass
 
-    def _get_solution(self, initial_position: float) -> Solution:
+    def evaluate_policy(self, policy: Policy, initial_state: list[float]) -> Solution:
+        state = np.asarray(initial_state)
+        cost = 0
+        u_vec = []
+        s_vec = []
+            
+        for _ in range(self.horizon):
+            u = policy.run(state)
+            u_vec.append(u)
+            s_vec.append(state.copy())
+            cost += self.cost_function(state, u)
+            transition = self.state_transition_function(state, u)
+            state += np.asarray(transition)
+
+        cost += self.cost_function(state, 0)
+        s_vec.append(state.copy())
+
+        u_vec = np.asarray(u_vec, dtype=np.float64)
+        s_vec = np.asarray(s_vec, dtype=np.float64)
+        
+        self.last_solution = Solution(s_vec, u_vec, float(cost))
+        return self.last_solution
+
+
+
+
+    def _get_solution(self, initial_state: list[float]) -> Solution:
 
         # state variable s = [x] #position
         s   = cs.SX.sym('s', self.nx)
@@ -113,7 +152,7 @@ class System:
         }
         opti.solver("ipopt", opts)
 
-        opti.set_value(param_s_zero, [initial_position])
+        opti.set_value(param_s_zero, initial_state)
         sol = opti.solve()
 
         x_sol = np.array([sol.value(X[k]) for k in range(self.horizon+1)], dtype=np.float64)
@@ -141,7 +180,7 @@ class InertiaSystem(System):
 
     def cost_function(self, x, u):
         # need to pass only the position (not the velocity)
-        if type(x) == cs.MX:
+        if type(x) != float:
             x = x[0]
         return super().cost_function(x,u)
 
@@ -149,12 +188,19 @@ class InertiaSystem(System):
         v = s[1]
         return [v*self.dt + 0.5 * u * self.dt**2, u*self.dt]
 
-    def _get_solution(self, initial_position: float) -> Solution:
-        # intercept the call, to save the solution with just the position vector
-        # (and remove the velocity part of the acceleration)
-        sol = super()._get_solution(initial_position)
+    # the inertia-system state is composed of two values (position and velocity)
+    # here we remove the velocity component from the state, as create issues 
+    # during plotting
+    def remove_velocity_component_from_solution(self, sol: Solution) -> Solution:
         sol.pos_vector = sol.pos_vector[:,0]
         print(sol.pos_vector.shape)
         self.last_solution = sol
         return sol
 
+    def _get_solution(self, initial_state: list[float]) -> Solution:
+        sol = super()._get_solution(initial_state)
+        return self.remove_velocity_component_from_solution(sol)
+
+    def evaluate_policy(self, policy: Policy, initial_state: list[float]) -> Solution:
+        sol = super().evaluate_policy(policy, initial_state)
+        return self.remove_velocity_component_from_solution(sol)

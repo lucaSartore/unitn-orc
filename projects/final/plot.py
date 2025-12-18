@@ -11,7 +11,7 @@ TrajectoryData = Union[np.ndarray, List[float]]
 def plot_agent_trajectory_with_cost(
     timestamps: TrajectoryData,
     positions: List[TrajectoryData],
-    cost_function: Callable[[np.ndarray], np.ndarray],
+    cost_function: Callable[[float], float],
     labels: List[str] | None = None,
     y_margin_percent: float = 0.05,
     figsize: Tuple[float, float] = (9, 6),
@@ -72,7 +72,7 @@ def plot_agent_trajectory_with_cost(
     
     # 2. Calculate Cost Data for the Position Range
     positions_space = np.linspace(y_lim_min, y_lim_max, 200)
-    costs = cost_function(positions_space)
+    costs = np.asarray([cost_function(float(x)) for x in positions_space])
     
     # --- 3. Create the Plot Structure (Mosaic) ---
 
