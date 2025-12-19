@@ -14,13 +14,21 @@ VELOCITY_RANGE: Final[tuple[float, float]] = (-5, 5)
 DEVICE: Final[str] = 'cuda'
 
 # path where the dataset is saved
-DATASET_SAVE_PATH = './dataset/'
+DATASET_SAVE_PATH: Final[str] = './dataset/'
 
 # number of training samples in the dataset
-DATASET_SIZE = 1_000
+DATASET_SIZE: Final[int] = 1_000
 
 # number of steps without a loss reduction that are accepted
 # by the optimization algorithm
-PATIENCE = 50
+PATIENCE: Final[int] = 50
+
+# maximum number of generation if patience doesn't terminate
+# the training earlier
+MAX_TRAINING_GENERATIONS: Final[int] = 10_000
+
+# train test dataset split used for training both the critic
+# and the actor
+TRAIN_TEST_SPLIT: Final[list[float]] = [0.9, 0.1]
 
 

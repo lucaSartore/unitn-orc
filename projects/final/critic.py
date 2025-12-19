@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 from dataset import RobotDataset
-from parameters import DEVICE, PATIENCE
+from parameters import DEVICE, MAX_TRAINING_GENERATIONS, PATIENCE, TRAIN_TEST_SPLIT
 from copy import deepcopy
 
 
@@ -21,7 +21,7 @@ class Critic(ABC):
         self.model = self.get_model()
 
     def run(self):
-        train_set, val_set = pt.utils.data.random_split(self.dataset, [0.9, 0.1])
+        train_set, val_set = pt.utils.data.random_split(self.dataset, TRAIN_TEST_SPLIT)
         self.train(train_set)
         self.validate(val_set)
         pass
@@ -75,7 +75,7 @@ class Critic(ABC):
         best_model: nn.Module | None = None
         patience = PATIENCE
         best_loss = math.inf
-        bar = tqdm(range(10000))
+        bar = tqdm(range(MAX_TRAINING_GENERATIONS))
         for _ in bar:
 
             running_loss = 0
