@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from torch import dtype
 from torch.utils.data import Dataset
 import numpy as np
 import os
@@ -6,8 +7,10 @@ from parameters import DATASET_SAVE_PATH, DATASET_SIZE, EXPLORATION_RANGE, VELOC
 import multiprocessing
 import random
 from system import InertiaSystem, SimpleSystem
+from functools import reduce
 
-DATASET_TYPE = tuple[np.typing.NDArray[np.float64], np.float64]
+
+DATASET_TYPE = tuple[np.typing.NDArray[np.float32], np.float32]
 
 class RobotDataset(ABC, Dataset[DATASET_TYPE]):
     def __init__(self, cached=True):
@@ -34,7 +37,7 @@ class RobotDataset(ABC, Dataset[DATASET_TYPE]):
 
     @staticmethod
     @abstractmethod
-    def get_example(index: int) -> tuple[list[float], float]:
+    def get_example(num_elements: int) -> list[tuple[list[float], float]]:
         pass
 
     @property
@@ -70,16 +73,19 @@ class RobotDataset(ABC, Dataset[DATASET_TYPE]):
     def generate_dataset(self):
         pool = multiprocessing.Pool()
 
-        examples = pool.map(
-            self.__class__.get_example,
-            range(DATASET_SIZE)
+        examples = reduce(
+            lambda a,b: a+b,
+            pool.map(
+                self.__class__.get_example,
+                [100 for _ in range(DATASET_SIZE//100)] + [DATASET_SIZE % 100]
+            )
         )
 
         input = [i for i,_ in examples]
         output = [o for _,o in examples]
 
-        self.input = np.asarray(input).T
-        self.output = np.asarray(output)
+        self.input = np.asarray(input, dtype=np.float32).T
+        self.output = np.asarray(output, dtype=np.float32)
 
 
 
@@ -87,6 +93,7 @@ class RobotDataset(ABC, Dataset[DATASET_TYPE]):
         return self.output.shape[0]
 
     def __getitem__(self, idx: int) -> DATASET_TYPE:
+        # return np.asarray([float(idx)],dtype=np.float32), np.float32(idx)
         if len(self.input.shape) == 1:
             return self.input[idx], self.output[idx]
         return self.input[:, idx], self.output[idx]
@@ -98,11 +105,15 @@ class SimpleRobotDataset(RobotDataset):
         return "simple"
 
     @staticmethod
-    def get_example(index: int) -> tuple[list[float], float]:
-        s = SimpleSystem()
-        point = random.uniform(*EXPLORATION_RANGE)
-        score = s.get_solution([point]).score
-        return [point], score
+    def get_example(num_elements: int) -> list[tuple[list[float], float]]:
+        s = InertiaSystem()
+        to_return: list[tuple[list[float], float]] = []
+        for _ in range(num_elements):
+            s = SimpleSystem()
+            point = random.uniform(*EXPLORATION_RANGE)
+            score = s.get_solution([point]).score
+            to_return.append(([point], score))
+        return to_return
 
 
 class InertiaRobotDataset(RobotDataset):
@@ -110,10 +121,13 @@ class InertiaRobotDataset(RobotDataset):
         return "inertia"
 
     @staticmethod
-    def get_example(index: int) -> tuple[list[float], float]:
+    def get_example(num_elements: int) -> list[tuple[list[float], float]]:
         s = InertiaSystem()
-        point = random.uniform(*EXPLORATION_RANGE)
-        velocity = random.uniform(*VELOCITY_RANGE)
-        state = [point, velocity]
-        score = s.get_solution(state).score
-        return state, score
+        to_return: list[tuple[list[float], float]] = []
+        for _ in range(num_elements):
+            point = random.uniform(*EXPLORATION_RANGE)
+            velocity = random.uniform(*VELOCITY_RANGE)
+            state = [point, velocity]
+            score = s.get_solution(state).score
+            to_return.append((state, score))
+        return to_return

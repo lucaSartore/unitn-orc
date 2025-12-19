@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
+import math
 import torch as pt
 from torch import nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from dataset import RobotDataset
-from parameters import DEVICE
+from parameters import DEVICE, PATIENCE
 
 
 class Critic(ABC):
@@ -27,13 +28,51 @@ class Critic(ABC):
         )
 
         self.model.train()
-        self.model.to(DEVICE)
+        self.model = self.model.to(DEVICE)
 
-        for _ in tqdm(range(100)):
+        # optimizer = pt.optim.SGD(params=self.model.parameters(), lr=0.001)
+        optimizer = pt.optim.AdamW(params=self.model.parameters())
 
-            for s,t in data_loader:
-                print(s)
-                print(t)
+        
+        patience = PATIENCE
+        best_loss = math.inf
+        bar = tqdm(range(10000))
+        for _ in bar:
+
+            running_loss = 0
+            input: pt.Tensor
+            output: pt.Tensor
+            for input,output in data_loader:
+                input = input.to(DEVICE)
+                input = input.unsqueeze(1)
+                output = output.to(DEVICE)
+                output = output.unsqueeze(1)
+                optimizer.zero_grad()
+
+                predicted_output: pt.Tensor = self.model(input)
+                # loss = F.mse_loss(predicted_output, output)
+                # loss = F.l1_loss(predicted_output, output)
+                loss = F.huber_loss(predicted_output, output)
+                loss.backward()
+
+                optimizer.step()
+                
+                running_loss += loss.item()
+
+            final_loss = running_loss / len(data_loader)
+
+            if final_loss < best_loss:
+                best_loss = final_loss
+                patience = PATIENCE
+            else:
+                patience -= 1
+
+            bar.set_description(f"loss={final_loss:.2f}")
+
+            if patience == 0:
+                break
+                 
+
             
             
 class SimpleCritic(Critic):
@@ -41,17 +80,19 @@ class SimpleCritic(Critic):
         class Model(nn.Module):
             def __init__(self):
                 super(Model, self).__init__()
-                self.l1 = nn.Linear(1,5)
-                self.l2 = nn.Linear(5,10)
-                self.l3 = nn.Linear(10,1)
+                self.l1 = nn.Linear(1,30)
+                self.l2 = nn.Linear(30,30)
+                self.l3 = nn.Linear(30,30)
+                self.l4 = nn.Linear(30,1)
 
-            def forward(self, x):
+            def forward(self, x: pt.Tensor):
                 x = self.l1(x)
                 x = F.relu(x)
                 x = self.l2(x)
                 x = F.relu(x)
-                x = self.l2(x)
+                x = self.l3(x)
                 x = F.relu(x)
+                x = self.l4(x)
                 return x
         return Model()
 

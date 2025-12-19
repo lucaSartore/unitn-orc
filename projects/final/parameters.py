@@ -17,6 +17,10 @@ DEVICE: Final[str] = 'cuda'
 DATASET_SAVE_PATH = './dataset/'
 
 # number of training samples in the dataset
-DATASET_SIZE = 10
+DATASET_SIZE = 1_000
+
+# number of steps without a loss reduction that are accepted
+# by the optimization algorithm
+PATIENCE = 50
 
 
