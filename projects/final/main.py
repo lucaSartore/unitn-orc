@@ -5,7 +5,7 @@ from critic import SimpleCritic
 def main():
     d = SimpleRobotDataset()
     c = SimpleCritic(d)
-    c.train()
+    c.run()
 
 
 if __name__ == '__main__':

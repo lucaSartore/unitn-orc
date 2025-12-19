@@ -3,10 +3,11 @@ import math
 import torch as pt
 from torch import nn
 import torch.nn.functional as F
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 from dataset import RobotDataset
 from parameters import DEVICE, PATIENCE
+from copy import deepcopy
 
 
 class Critic(ABC):
@@ -19,10 +20,47 @@ class Critic(ABC):
         self.dataset = dataset
         self.model = self.get_model()
 
-    def train(self):
+    def run(self):
+        train_set, val_set = pt.utils.data.random_split(self.dataset, [0.9, 0.1])
+        self.train(train_set)
+        self.validate(val_set)
+        pass
+
+    def validate(self, dataset: Dataset):
+        data_loader = DataLoader(
+            dataset,
+            batch_size=64,
+            shuffle=True
+        )
+
+        self.model.eval()
+        self.model = self.model.to(DEVICE)
+
+        running_loss = 0
+        input: pt.Tensor
+        output: pt.Tensor
+        for input,output in data_loader:
+            input = input.to(DEVICE)
+            input = input.unsqueeze(1)
+            output = output.to(DEVICE)
+            output = output.unsqueeze(1)
+
+            predicted_output: pt.Tensor = self.model(input)
+            # loss = F.mse_loss(predicted_output, output)
+            # loss = F.l1_loss(predicted_output, output)
+            loss = F.huber_loss(predicted_output, output)
+
+            running_loss += loss.item()
+
+        final_loss = running_loss / len(data_loader)
+
+        print(f"Final loss with validation dataset: {final_loss}")
+                 
+
+    def train(self, dataset: Dataset):
         
         data_loader = DataLoader(
-            self.dataset,
+            dataset,
             batch_size=64,
             shuffle=True
         )
@@ -34,6 +72,7 @@ class Critic(ABC):
         optimizer = pt.optim.AdamW(params=self.model.parameters())
 
         
+        best_model: nn.Module | None = None
         patience = PATIENCE
         best_loss = math.inf
         bar = tqdm(range(10000))
@@ -64,6 +103,7 @@ class Critic(ABC):
             if final_loss < best_loss:
                 best_loss = final_loss
                 patience = PATIENCE
+                best_model = deepcopy(self.model).cpu()
             else:
                 patience -= 1
 
@@ -71,6 +111,9 @@ class Critic(ABC):
 
             if patience == 0:
                 break
+        
+        assert best_model != None
+        self.model = best_model
                  
 
             
