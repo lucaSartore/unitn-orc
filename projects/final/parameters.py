@@ -17,7 +17,7 @@ DEVICE: Final[str] = 'cuda'
 DATASET_SAVE_PATH: Final[str] = './dataset/'
 
 # number of training samples in the dataset
-DATASET_SIZE: Final[int] = 1_000
+DATASET_SIZE: Final[int] = 10_000
 
 # number of steps without a loss reduction that are accepted
 # by the optimization algorithm
@@ -31,4 +31,13 @@ MAX_TRAINING_GENERATIONS: Final[int] = 10_000
 # and the actor
 TRAIN_TEST_SPLIT: Final[list[float]] = [0.9, 0.1]
 
+# number of cores that are used for dataset generation
+# if none the system's number of cores will be used
+# (note that using none may result in excessive memory usage)
+CORES_FOR_DATASET_GENERATION: Final[int | None] = 6
+
+# number of examples that each core should generation.
+# having a large number here allow the cost of spawning
+# a process to be amortized
+GENERATED_POINTS_PER_CORE: Final[int] = 50
 

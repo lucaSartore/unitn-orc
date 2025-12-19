@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
-from torch import dtype
+import tqdm
 from torch.utils.data import Dataset
 import numpy as np
 import os
-from parameters import DATASET_SAVE_PATH, DATASET_SIZE, EXPLORATION_RANGE, VELOCITY_RANGE
+from parameters import CORES_FOR_DATASET_GENERATION, DATASET_SAVE_PATH, DATASET_SIZE, EXPLORATION_RANGE, GENERATED_POINTS_PER_CORE, VELOCITY_RANGE
 import multiprocessing
 import random
 from system import InertiaSystem, SimpleSystem
@@ -71,13 +71,22 @@ class RobotDataset(ABC, Dataset[DATASET_TYPE]):
             return False
 
     def generate_dataset(self):
-        pool = multiprocessing.Pool()
+        pool = multiprocessing.Pool(CORES_FOR_DATASET_GENERATION)
+
+        numbers = [GENERATED_POINTS_PER_CORE for _ in range(DATASET_SIZE//GENERATED_POINTS_PER_CORE)]
+        if DATASET_SIZE % GENERATED_POINTS_PER_CORE != 0:
+            numbers += [DATASET_SIZE % GENERATED_POINTS_PER_CORE]
+
+        assert sum(numbers) == DATASET_SIZE
 
         examples = reduce(
             lambda a,b: a+b,
-            pool.map(
-                self.__class__.get_example,
-                [100 for _ in range(DATASET_SIZE//100)] + [DATASET_SIZE % 100]
+            tqdm.tqdm(
+                pool.imap(
+                    self.__class__.get_example,
+                    numbers
+                ),
+                total=len(numbers)
             )
         )
 
@@ -106,6 +115,8 @@ class SimpleRobotDataset(RobotDataset):
 
     @staticmethod
     def get_example(num_elements: int) -> list[tuple[list[float], float]]:
+        import sys
+        sys.stdout = open('/dev/null', 'w')
         s = InertiaSystem()
         to_return: list[tuple[list[float], float]] = []
         for _ in range(num_elements):
@@ -122,6 +133,8 @@ class InertiaRobotDataset(RobotDataset):
 
     @staticmethod
     def get_example(num_elements: int) -> list[tuple[list[float], float]]:
+        import sys
+        sys.stdout = open('/dev/null', 'w')
         s = InertiaSystem()
         to_return: list[tuple[list[float], float]] = []
         for _ in range(num_elements):

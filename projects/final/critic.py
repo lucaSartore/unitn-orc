@@ -46,9 +46,9 @@ class Critic(ABC):
             output = output.unsqueeze(1)
 
             predicted_output: pt.Tensor = self.model(input)
-            # loss = F.mse_loss(predicted_output, output)
+            loss = F.mse_loss(predicted_output, output)
             # loss = F.l1_loss(predicted_output, output)
-            loss = F.huber_loss(predicted_output, output)
+            # loss = F.huber_loss(predicted_output, output)
 
             running_loss += loss.item()
 
@@ -89,11 +89,12 @@ class Critic(ABC):
                 optimizer.zero_grad()
 
                 predicted_output: pt.Tensor = self.model(input)
-                # loss = F.mse_loss(predicted_output, output)
+                loss = F.mse_loss(predicted_output, output)
                 # loss = F.l1_loss(predicted_output, output)
-                loss = F.huber_loss(predicted_output, output)
+                # loss = F.huber_loss(predicted_output, output)
                 loss.backward()
 
+                print(input[0], output[0], predicted_output[0])
                 optimizer.step()
                 
                 running_loss += loss.item()
@@ -138,4 +139,26 @@ class SimpleCritic(Critic):
                 x = self.l4(x)
                 return x
         return Model()
+
+class InertiaCritic(Critic):
+    def get_model(self) -> nn.Module:
+        class Model(nn.Module):
+            def __init__(self):
+                super(Model, self).__init__()
+                self.l1 = nn.Linear(2,30)
+                self.l2 = nn.Linear(30,30)
+                self.l3 = nn.Linear(30,30)
+                self.l4 = nn.Linear(30,1)
+
+            def forward(self, x: pt.Tensor):
+                x = self.l1(x)
+                x = F.relu(x)
+                x = self.l2(x)
+                x = F.relu(x)
+                x = self.l3(x)
+                x = F.relu(x)
+                x = self.l4(x)
+                return x
+        return Model()
+
 
