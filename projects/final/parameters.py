@@ -23,10 +23,6 @@ DATASET_SIZE: Final[int] = 10_000
 # by the optimization algorithm
 PATIENCE: Final[int] = 50
 
-# maximum number of generation if patience doesn't terminate
-# the training earlier
-MAX_TRAINING_GENERATIONS: Final[int] = 10_000
-
 # train test dataset split used for training both the critic
 # and the actor
 TRAIN_TEST_SPLIT: Final[list[float]] = [0.9, 0.1]
@@ -41,6 +37,24 @@ CORES_FOR_DATASET_GENERATION: Final[int | None] = 6
 # a process to be amortized
 GENERATED_POINTS_PER_CORE: Final[int] = 50
 
+# maximum number of generation if patience doesn't terminate
+# the training earlier
+CRITIC_MAX_TRAINING_GENERATIONS: Final[int] = 10_000
+
 # learning rate used by the optimizer for the
 # critic
 CRITIC_LEARNING_RATE: Final[float] = 0.0005
+
+# batch size using in the critic training process
+CRITIC_BATCH_SIZE: Final[int] = 64
+
+# maximum number of generation if patience doesn't terminate
+# the training earlier
+ACTOR_MAX_TRAINING_GENERATIONS: Final[int] = 10_000
+
+# learning rate used by the optimizer for the
+# actor
+ACTOR_LEARNING_RATE: Final[float] = 0.0005
+
+# batch size using in the actor training process
+ACTOR_BATCH_SIZE: Final[int] = 64
