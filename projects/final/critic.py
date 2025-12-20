@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 from dataset import RobotDataset
-from parameters import DEVICE, MAX_TRAINING_GENERATIONS, PATIENCE, TRAIN_TEST_SPLIT
+from parameters import DEVICE, CRITIC_LEARNING_RATE, MAX_TRAINING_GENERATIONS, PATIENCE, TRAIN_TEST_SPLIT
 from copy import deepcopy
 
 
@@ -41,14 +41,13 @@ class Critic(ABC):
         output: pt.Tensor
         for input,output in data_loader:
             input = input.to(DEVICE)
-            input = input.unsqueeze(1)
+            if len(input.shape) == 1:
+                input = input.unsqueeze(1)
             output = output.to(DEVICE)
             output = output.unsqueeze(1)
 
             predicted_output: pt.Tensor = self.model(input)
-            loss = F.mse_loss(predicted_output, output)
-            # loss = F.l1_loss(predicted_output, output)
-            # loss = F.huber_loss(predicted_output, output)
+            loss = F.huber_loss(predicted_output, output)
 
             running_loss += loss.item()
 
@@ -68,8 +67,7 @@ class Critic(ABC):
         self.model.train()
         self.model = self.model.to(DEVICE)
 
-        # optimizer = pt.optim.SGD(params=self.model.parameters(), lr=0.001)
-        optimizer = pt.optim.AdamW(params=self.model.parameters())
+        optimizer = pt.optim.AdamW(params=self.model.parameters(), lr=CRITIC_LEARNING_RATE)
 
         
         best_model: nn.Module | None = None
@@ -83,18 +81,16 @@ class Critic(ABC):
             output: pt.Tensor
             for input,output in data_loader:
                 input = input.to(DEVICE)
-                input = input.unsqueeze(1)
+                if len(input.shape) == 1:
+                    input = input.unsqueeze(1)
                 output = output.to(DEVICE)
                 output = output.unsqueeze(1)
                 optimizer.zero_grad()
 
                 predicted_output: pt.Tensor = self.model(input)
-                loss = F.mse_loss(predicted_output, output)
-                # loss = F.l1_loss(predicted_output, output)
-                # loss = F.huber_loss(predicted_output, output)
+                loss = F.huber_loss(predicted_output, output)
                 loss.backward()
 
-                print(input[0], output[0], predicted_output[0])
                 optimizer.step()
                 
                 running_loss += loss.item()
@@ -145,10 +141,10 @@ class InertiaCritic(Critic):
         class Model(nn.Module):
             def __init__(self):
                 super(Model, self).__init__()
-                self.l1 = nn.Linear(2,30)
-                self.l2 = nn.Linear(30,30)
-                self.l3 = nn.Linear(30,30)
-                self.l4 = nn.Linear(30,1)
+                self.l1 = nn.Linear(2,50)
+                self.l2 = nn.Linear(50,50)
+                self.l3 = nn.Linear(50,50)
+                self.l4 = nn.Linear(50,1)
 
             def forward(self, x: pt.Tensor):
                 x = self.l1(x)

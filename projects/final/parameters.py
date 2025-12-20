@@ -41,3 +41,6 @@ CORES_FOR_DATASET_GENERATION: Final[int | None] = 6
 # a process to be amortized
 GENERATED_POINTS_PER_CORE: Final[int] = 50
 
+# learning rate used by the optimizer for the
+# critic
+CRITIC_LEARNING_RATE: Final[float] = 0.0005
