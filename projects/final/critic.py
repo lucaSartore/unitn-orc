@@ -6,14 +6,22 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 from dataset import RobotDataset
-from parameters import CRITIC_BATCH_SIZE, DEVICE, CRITIC_LEARNING_RATE, CRITIC_MAX_TRAINING_GENERATIONS, PATIENCE, TRAIN_TEST_SPLIT
+from parameters import CRITIC_BATCH_SIZE, DEVICE, CRITIC_LEARNING_RATE, CRITIC_MAX_TRAINING_GENERATIONS, EXPLORATION_RANGE, PATIENCE, TRAIN_TEST_SPLIT
 from copy import deepcopy
+import numpy as np
+import matplotlib.pyplot as plt
+
+from system import System
 
 
 class Critic(ABC):
 
     @abstractmethod
     def get_model(self) -> nn.Module:
+        pass
+
+    @abstractmethod
+    def plot(self, system: System):
         pass
 
     def __init__(self, dataset: RobotDataset) -> None:
@@ -119,12 +127,13 @@ class SimpleCritic(Critic):
         class Model(nn.Module):
             def __init__(self):
                 super(Model, self).__init__()
-                self.l1 = nn.Linear(1,30)
-                self.l2 = nn.Linear(30,30)
-                self.l3 = nn.Linear(30,30)
-                self.l4 = nn.Linear(30,1)
+                self.l1 = nn.Linear(1,160)
+                self.l2 = nn.Linear(160,160)
+                self.l3 = nn.Linear(160,160)
+                self.l4 = nn.Linear(160,1)
 
             def forward(self, x: pt.Tensor):
+                x = pt.clip(x, *EXPLORATION_RANGE)
                 x = self.l1(x)
                 x = F.relu(x)
                 x = self.l2(x)
@@ -134,6 +143,34 @@ class SimpleCritic(Critic):
                 x = self.l4(x)
                 return x
         return Model()
+
+    def plot(self, system: System):
+        x = np.linspace(*EXPLORATION_RANGE, 50)
+        # Ensure model is in eval mode and move tensor to CPU for plotting
+        self.model.eval()
+        with pt.no_grad():
+            y_critic = self.model(pt.tensor(x).float().unsqueeze(1).to(DEVICE)).cpu().numpy()
+        
+        # Convert the real solution list to a numpy array
+        y_real = np.array([system.get_solution([i]).score for i in x])
+
+        plt.figure(figsize=(10, 6))
+        
+        # Plotting the data
+        plt.plot(x, y_real, label='Ground Truth (Real)', color='black', linestyle='--')
+        plt.plot(x, y_critic, label='Critic Approximation', color='blue', alpha=0.8)
+        
+        # Formatting the chart
+        plt.title('Comparison: Critic Model vs. Real System Solution')
+        plt.xlabel('State Space ($x$)')
+        plt.ylabel('Value ($V$)')
+        plt.legend()
+        plt.grid(True, linestyle=':', alpha=0.6)
+        
+        plt.show()
+        
+
+        
 
 class InertiaCritic(Critic):
     def get_model(self) -> nn.Module:
@@ -155,5 +192,8 @@ class InertiaCritic(Critic):
                 x = self.l4(x)
                 return x
         return Model()
+
+
+
 
 
