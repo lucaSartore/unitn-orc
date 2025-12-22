@@ -61,9 +61,9 @@ class Actor(ABC):
         for param in self.critic.parameters():
             param.requires_grad = False
 
-        optim = pt.optim.SGD(self.model.parameters(), lr=0.01)
+        optim = pt.optim.AdamW(self.model.parameters(), lr=0.00005)
 
-        bar = tqdm(range(1000))
+        bar = tqdm(range(3000))
         for i in bar:
             optim.zero_grad()
             self.critic.zero_grad()
@@ -74,8 +74,8 @@ class Actor(ABC):
             # state_cost = self.system.cost_function(input, action)
             # state_cost = action.T @ action
             input_cost = 0.5 * action * action
-            # x = input[:]
-            # position_cost = (x - 1.9) * (x - 1.0) * (x - 0.6) * (x + 0.5) * (x + 1.2) * (x + 2.1) 
+            x = input[:]
+            position_cost = (x - 1.9) * (x - 1.0) * (x - 0.6) * (x + 0.5) * (x + 1.2) * (x + 2.1) 
 
             next_state = input + action * 0.02
             next_state_cost: pt.Tensor = self.critic(next_state)
@@ -83,11 +83,11 @@ class Actor(ABC):
 
             
             fn = lambda x: f"{x[0].item():.4f}"
-            print(f"{fn(input)} ({fn(current_state_cost)}) -> {fn(action)} -> {fn(next_state)} ({fn(next_state_cost)})")
+            # print(f"{fn(input)} ({fn(current_state_cost)}) -> {fn(action)} -> {fn(next_state)} ({fn(next_state_cost)})")
             # total_cost = input_cost + position_cost + next_state_cost
             # print(input_cost[0].item())
             # total_cost = input_cost * 1000
-            total_cost = next_state_cost + input_cost
+            total_cost = next_state_cost + input_cost + position_cost
             loss = pt.sum(total_cost) / ACTOR_BATCH_SIZE
 
             loss.backward()
@@ -96,19 +96,19 @@ class Actor(ABC):
 
 
             if i%10 == 0:
-                # with pt.no_grad():
-                #     optimal_cost = self.critic(input)
-                #     policy_cost = input_cost + self.critic(next_state)
-                #
-                #     optimality_loss = policy_cost - optimal_cost
-                #     optimality_loss = pt.sum(optimality_loss) / ACTOR_BATCH_SIZE
-                #
-                #     # print(optimality_loss.item())
-                #
-                #     bar.set_description(f"loss={optimality_loss.item():.2f}")
+                with pt.no_grad():
+                    optimal_cost = self.critic(input)
+                    policy_cost = input_cost + self.critic(next_state)
 
-                print(loss.item())
-                bar.set_description(f"loss={loss.item():.2f}")
+                    optimality_loss = policy_cost - optimal_cost
+                    optimality_loss = pt.sum(optimality_loss) / ACTOR_BATCH_SIZE
+
+                    # print(optimality_loss.item())
+
+                    bar.set_description(f"loss={optimality_loss.item():.2f}")
+
+                # print(loss.item())
+                # bar.set_description(f"loss={loss.item():.2f}")
 
 
             

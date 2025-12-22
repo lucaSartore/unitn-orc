@@ -13,8 +13,8 @@ def main():
     
     c.run()
 
-    # c.plot(s)
-    # return
+    c.plot(s)
+    return
 
     # import torch
     # for d in [-1.9, -1.8, -1.7]:

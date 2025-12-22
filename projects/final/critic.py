@@ -54,7 +54,8 @@ class Critic(ABC):
             output = output.unsqueeze(1)
 
             predicted_output: pt.Tensor = self.model(input)
-            loss = F.huber_loss(predicted_output, output)
+            loss = F.l1_loss(predicted_output, output)
+            # loss = F.huber_loss(predicted_output, output)
 
             running_loss += loss.item()
 
@@ -74,7 +75,15 @@ class Critic(ABC):
         self.model.train()
         self.model = self.model.to(DEVICE)
 
-        optimizer = pt.optim.AdamW(params=self.model.parameters(), lr=CRITIC_LEARNING_RATE)
+        optimizer = pt.optim.AdamW(params=self.model.parameters(), lr=0.0001)
+
+        scheduler = pt.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, 
+            mode='min',
+            factor=0.5,
+            patience=10,
+            threshold=1e-4
+        )
 
         
         best_model: nn.Module | None = None
@@ -95,7 +104,8 @@ class Critic(ABC):
                 optimizer.zero_grad()
 
                 predicted_output: pt.Tensor = self.model(input)
-                loss = F.huber_loss(predicted_output, output)
+                loss = F.l1_loss(predicted_output, output)
+                # loss = F.huber_loss(predicted_output, output)
                 loss.backward()
 
                 optimizer.step()
@@ -103,6 +113,7 @@ class Critic(ABC):
                 running_loss += loss.item()
 
             final_loss = running_loss / len(data_loader)
+            scheduler.step(final_loss)
 
             if final_loss < best_loss:
                 best_loss = final_loss
@@ -127,25 +138,29 @@ class SimpleCritic(Critic):
         class Model(nn.Module):
             def __init__(self):
                 super(Model, self).__init__()
-                self.l1 = nn.Linear(1,160)
-                self.l2 = nn.Linear(160,160)
-                self.l3 = nn.Linear(160,160)
-                self.l4 = nn.Linear(160,1)
+                self.l1 = nn.Linear(1,5000)
+                self.l2 = nn.Linear(5000,256)
+                self.l3 = nn.Linear(256,1)
+                # self.l4 = nn.Linear(128,64)
+                # self.l5 = nn.Linear(64,1)
 
             def forward(self, x: pt.Tensor):
                 x = pt.clip(x, *EXPLORATION_RANGE)
                 x = self.l1(x)
-                x = F.relu(x)
+                x = F.leaky_relu(x)
                 x = self.l2(x)
-                x = F.relu(x)
+                # x = F.leaky_relu(x)
+                # x = self.l3(x)
+                # x = F.leaky_relu(x)
+                # x = self.l4(x)
+                x = F.leaky_relu(x)
                 x = self.l3(x)
-                x = F.relu(x)
-                x = self.l4(x)
                 return x
         return Model()
 
     def plot(self, system: System):
-        x = np.linspace(*EXPLORATION_RANGE, 50)
+        # x = np.linspace(*EXPLORATION_RANGE, 50)
+        x = np.linspace(-1.9, -1.7, 50)
         # Ensure model is in eval mode and move tensor to CPU for plotting
         self.model.eval()
         with pt.no_grad():
@@ -192,8 +207,3 @@ class InertiaCritic(Critic):
                 x = self.l4(x)
                 return x
         return Model()
-
-
-
-
-
