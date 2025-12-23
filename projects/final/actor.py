@@ -197,27 +197,40 @@ class InertiaActor(Actor):
         return state.to(DEVICE)
 
 
-    def plot(self, system: System):
-        x = np.linspace(*EXPLORATION_RANGE, 10)
-        # Ensure model is in eval mode and move tensor to CPU for plotting
-        self.model.eval()
-        with pt.no_grad():
-            y_critic = self.model(pt.tensor(x).float().unsqueeze(1).to(DEVICE)).cpu().numpy()
-        
-        # Convert the real solution list to a numpy array
-        y_real = np.array([system.get_solution([i]).u_vector[0] for i in x])
 
-        plt.figure(figsize=(10, 6))
+    def plot(self, system: System):
+        SPACE_POINTS = 5
+        VELOCITY_POINTS = 5
+        x = np.linspace(*EXPLORATION_RANGE, SPACE_POINTS)
+        v = np.linspace(*VELOCITY_RANGE, VELOCITY_POINTS)
+
+        plt.style.use('_mpl-gallery')
+        x, v = np.meshgrid(x, v)
+
+
+        self.model.eval().to(DEVICE)
+        with pt.no_grad():
+            xt = pt.tensor(x).float().to(DEVICE).reshape((SPACE_POINTS * VELOCITY_POINTS, 1))
+            vt = pt.tensor(v).float().to(DEVICE).reshape((SPACE_POINTS * VELOCITY_POINTS, 1))
+            input = pt.hstack([xt, vt]).to(DEVICE)
+            y_critic: pt.Tensor = self.model(input)
+            y_critic = y_critic.reshape((SPACE_POINTS, VELOCITY_POINTS))
+            y_critic_numpy = y_critic.detach().cpu().numpy()
+
+        y_gt = np.zeros(shape=x.shape, dtype=np.float32)
+        for i in range(SPACE_POINTS):
+            for j in range(VELOCITY_POINTS):
+                state = [float(x[i,j]), float(v[i,j])]
+                y_gt[i,j] = system.get_solution(state).u_vector[0]
+
         
-        # Plotting the data
-        plt.plot(x, y_real, label='Optimal policy', color='black', linestyle='--')
-        plt.plot(x, y_critic, label='Actor policy', color='blue', alpha=0.8)
-        
-        # Formatting the chart
-        plt.title('Comparison: Critic Model vs. Real System Solution')
-        plt.xlabel('State Space ($x$)')
-        plt.ylabel('Value ($V$)')
-        plt.legend()
-        plt.grid(True, linestyle=':', alpha=0.6)
-        
+        _, ax = plt.subplots(subplot_kw={"projection": "3d"})
+        ax.plot_surface(x, v, y_critic_numpy, color='blue', alpha=0.5, label='Actor policy') #type: ignore
+        ax.plot_surface(x, v, y_gt, color='red', alpha=0.5, label='Optimal policy') #type: ignore
+
+        ax.legend()
+        ax.set_xlabel('Position')
+        ax.set_ylabel('Velocity')
+        ax.set_zlabel('Control Input') #type: ignore
+
         plt.show()
