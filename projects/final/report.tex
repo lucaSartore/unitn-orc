@@ -1,0 +1,80 @@
+\documentclass[12pt]{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{geometry}
+\usepackage{float}
+\geometry{margin=1in}
+
+\title{Optimization and Learning for Robot Control: Final Project}
+\author{Luca Sartore - 256154}
+\date{}
+
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+
+\section{Introduction}
+
+\section{Creating a dataset using Optimal Control}
+
+\subsection{Solving the optimal control problem}
+
+\subsection{Dataset creation}
+
+\section{Training the critic}
+
+\subsection{Simple Critic}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{./images/simple_system___critic_function.png}
+\caption{Baseline controller performance.}
+\label{fig:simple_critic_fn}
+\end{figure}
+
+
+\subsection{Inertia Critic}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{./images/inertia_system___critic_function.png}
+\caption{Baseline controller performance.}
+\label{fig:inertia_critic_fn}
+\end{figure}
+
+
+\section{Training the actor}
+
+\subsection{Simple Actor}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{./images/simple_system___actor_function.png}
+\caption{Baseline controller performance.}
+\label{fig:simpl.e_actor_fn}
+\end{figure}
+
+
+\subsection{Inertia Actor}
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{./images/inertia_system___actor_function.png}
+\caption{Baseline controller performance.}
+\label{fig:inertia_actor_fn}
+\end{figure}
+
+\section{Optimal control vs Actor Approximation}
+
+
+
+\section{Solving time of different methods}
+
+
+\end{document}

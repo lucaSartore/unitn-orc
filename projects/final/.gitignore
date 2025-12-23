@@ -1,1 +1,8 @@
 dataset/
+*.out
+*.log
+*.fls
+*.aux
+*.fdb_latexmk
+*.toc
+*.gz
