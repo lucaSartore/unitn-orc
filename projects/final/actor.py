@@ -10,7 +10,7 @@ from tqdm import tqdm
 from critic import Critic
 import critic
 from dataset import RobotDataset
-from parameters import ACTOR_BATCH_SIZE, ACTOR_MAX_TRAINING_GENERATIONS, CRITIC_BATCH_SIZE, DEVICE, CRITIC_LEARNING_RATE, CRITIC_MAX_TRAINING_GENERATIONS, EXPLORATION_RANGE, PATIENCE, TRAIN_TEST_SPLIT, VELOCITY_RANGE
+from parameters import ACTOR_BATCH_SIZE, ACTOR_LEARNING_RATE, ACTOR_MAX_TRAINING_GENERATIONS, CRITIC_BATCH_SIZE, DEVICE, CRITIC_LEARNING_RATE, CRITIC_MAX_TRAINING_GENERATIONS, EXPLORATION_RANGE, PATIENCE, TRAIN_TEST_SPLIT, VELOCITY_RANGE
 from copy import copy, deepcopy
 from system import Policy, System
 import numpy as np
@@ -59,7 +59,7 @@ class Actor(ABC):
         for param in self.critic.parameters():
             param.requires_grad = False
 
-        optim = pt.optim.AdamW(self.model.parameters(), lr=0.00005)
+        optim = pt.optim.AdamW(self.model.parameters(), lr=ACTOR_LEARNING_RATE)
 
         bar = tqdm(range(ACTOR_MAX_TRAINING_GENERATIONS))
         for i in bar:

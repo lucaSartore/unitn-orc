@@ -54,7 +54,7 @@ ACTOR_MAX_TRAINING_GENERATIONS: Final[int] = 5000
 
 # learning rate used by the optimizer for the
 # actor
-ACTOR_LEARNING_RATE: Final[float] = 0.0005
+ACTOR_LEARNING_RATE: Final[float] = 0.00005
 
 # batch size using in the actor training process
 ACTOR_BATCH_SIZE: Final[int] = 2048
