@@ -173,7 +173,7 @@ was selected, as it is common doing in regression problems.
 \subsection{Simple Critic}
 
 The network for the ``simple'' system's critic ended up being a 4 layers FFNN with the respective
-depth being (1,512,128,1)
+layer widths being (1,1024,256,1). All the activation layers are leaky ReLU.
 
 In the figure \ref{fig:simple_critic_fn} we can see how accurate the critic is compared to the ground truth
 \begin{figure}[H]
@@ -187,13 +187,13 @@ In the figure \ref{fig:simple_critic_fn} we can see how accurate the critic is c
 \subsection{Inertia Critic}
 
 The network for the ``inertia'' system's critic ended up being a 5 layers FFNN with the respective
-depth being (2,1024,256,64,1)
+layer widths being (2,1024,512,256,1). All the activation layers are leaky ReLU.
 
 In the figure \ref{fig:inertia_critic_fn} we can see how accurate the critic is compared to the ground truth
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.6\textwidth]{./images/inertia_system___critic_function.png}
-\caption{Baseline controller performance.}
+\caption{Inertia Critic accuracy compared to ground truth}
 \label{fig:inertia_critic_fn}
 \end{figure}
 
@@ -219,28 +219,111 @@ The parameters used during training are the following:
     \item \textbf{Iterations} 5000 (where each iteration had only one batch with the input state being randomly generated)
 \end{itemize}
 
+Initially the training process did not work at all, and the reason turns out to be interesting:
+During training the state ended up outside the range that was considered ``valid'' for the critic,
+and therefore the output was inconsistent.
+To solve this issue the the critic was edited so that the input is clipped if outside the validity range.
+
+The training took approximately 11 seconds on an RTX 3060 ti GPU. The final losses are not reported
+here as they are hard to interpret (given that they depends on the value function).
+The size and shape of the network was selected in the same way that the critic's one was selected
+
 
 \subsection{Simple Actor}
+
+
+The network for the ``simple'' system's actor ended up being a 4 layers FFNN with the respective
+layer widths being (1,512,128,1). All the activation layers are leaky ReLU.
+
+In the figure \ref{fig:simple_actor_fn} we can see how accurate the actor is compared to the ground truth
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.6\textwidth]{./images/simple_system___actor_function.png}
-\caption{Baseline controller performance.}
-\label{fig:simpl.e_actor_fn}
+\caption{Simple Actor accuracy compared to ground truth}
+\label{fig:simple_actor_fn}
 \end{figure}
 
+One interesting detail to note in the chart is how the system struggles a bit in the
+``discontinuity'' found around $0.7$.
+The discontinuity is due to the fact that around that value the optimal
+strategy changes from moving towards the minimum around $-1.8$ to moving to the minimum
+around $1.8$.
+
+This is potentially solvable using larger networks, but that would undermine the main
+advantage of this approach which is speed.
 
 \subsection{Inertia Actor}
 
 
+The network for the ``inertia'' system's actor ended up being a 5 layers FFNN with the respective
+layer widths being (1,1024,256,64,1). All the activation layers are leaky ReLU.
+
+
+In the figure \ref{fig:inertia_actor_fn} we can see how accurate the actor is compared to the ground truth
+
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.6\textwidth]{./images/inertia_system___actor_function.png}
-\caption{Baseline controller performance.}
+\caption{Inertia Actor accuracy compared to ground truth}
 \label{fig:inertia_actor_fn}
 \end{figure}
 
 \section{Optimal control vs Actor Approximation}
+
+In this section we report some trajectory that have being obtained with optimal control and with 
+the actor to show how well the network was able to learn the optimal policy.
+
+\subsection{Simple system trajectories}
+
+
+We can note how the trajectories look pretty good.
+In the first sub-figure of figure \ref{fig:simple_system_trajecotries} we can note how 
+there is a small divergence from the steady state reached by the two control methods.
+
+
+This can be explained by locking at figure \ref{fig:imperfect_min_point} that shows 
+how the policy's value function has a local minimum that is slightly shifted
+with respect to the real value function. And issue is reflected in the policy learned.
+
+Initially this issue was much larger, and was solved by simply increasing the size of the policy network.
+This trick stopped working at a certain point because the limitation started to become the
+dataset's size.
+\begin{figure}[H]
+\centering
+\begin{tabular}{cc}
+  \includegraphics[width=80mm]{images/simple_system___actor_vs_ground_trough___0.png} &   \includegraphics[width=80mm]{images/simple_system___actor_vs_ground_trough___1.png} \\
+  \includegraphics[width=80mm]{images/simple_system___actor_vs_ground_trough___2.png} &   \includegraphics[width=80mm]{images/simple_system___actor_vs_ground_trough___3.png} \\
+\multicolumn{2}{c}{\includegraphics[width=65mm]{images/simple_system___actor_vs_ground_trough___4.png} }\\
+\end{tabular}
+\caption{Trajectory in the ``simple'' system}
+\label{fig:simple_system_trajecotries}
+\end{figure}
+
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{./images/issue_with_imperfect_min_point.png}
+\caption{Value function around $-1.8$}
+\label{fig:imperfect_min_point}
+\end{figure}
+
+
+\subsection{Inertia system trajectories}
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{cc}
+  \includegraphics[width=80mm]{images/inertia_system___actor_vs_ground_trough___0.png} &   \includegraphics[width=80mm]{images/inertia_system___actor_vs_ground_trough___1.png} \\
+  \includegraphics[width=80mm]{images/inertia_system___actor_vs_ground_trough___2.png} &   \includegraphics[width=80mm]{images/inertia_system___actor_vs_ground_trough___3.png} \\
+  \includegraphics[width=80mm]{images/inertia_system___actor_vs_ground_trough___4.png} &   \includegraphics[width=80mm]{images/inertia_system___actor_vs_ground_trough___5.png} \\
+\multicolumn{2}{c}{\includegraphics[width=65mm]{images/inertia_system___actor_vs_ground_trough___6.png} }\\
+\end{tabular}
+\caption{Trajectory in the ``simple'' system}
+\end{figure}
+
+
 
 
 
