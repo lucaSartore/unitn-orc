@@ -137,7 +137,7 @@ class System(ABC):
             initial_guess: list[InitialGuess]| None = None
     ) -> Solution:
         self.last_solution = min(
-            [self._get_solution(initial_state) for _ in range(num_attempts)],
+            [self._get_solution(initial_state, initial_guess) for _ in range(num_attempts)],
             key= lambda x: x.score
         )
         return self.last_solution
@@ -175,7 +175,10 @@ class System(ABC):
 
             X += [x]
         for k in range(self.horizon): 
-            U += [opti.variable(self.nu)]
+            u = opti.variable(self.nu)
+            if initial_guess != None:
+                opti.set_initial(u,initial_guess[k].control)
+            U += [u]
 
         #accumulated cost value
         cost = 0

@@ -1,9 +1,10 @@
 from dataclasses import dataclass
-from typing import Literal
+from typing import Callable, Literal
 from actor import Actor, InertiaActor, SimpleActor
 from dataset import InertiaRobotDataset, RobotDataset, SimpleRobotDataset
 from critic import Critic, InertiaCritic, SimpleCritic
 from system import InertiaSystem, SimpleSystem, System
+from time import time
 
 
 TEST_TYPE: Literal['simple', 'inertia'] = 'inertia'
@@ -94,6 +95,35 @@ def run_test(config: TestConfig):
                 "optimal control"
             ]
         )
+
+
+    print("Testing execution time for various OCP")
+    def fn[T](to_test: Callable[[],T]) -> tuple[T,float]:
+        start = time()
+        result = to_test()
+        end = time()
+        return result, end-start
+    for state in config.states_to_test:
+        s1, t1 = fn(lambda: s.get_solution(state, 1))
+        s2, t2 = fn(lambda: s.get_solution(state, 10))
+        s3, t3 = fn(lambda: s.evaluate_policy(a.get_policy(), state))
+        s4, t4 = fn(lambda: s.get_solution(
+            state,
+            1,
+            s.get_initial_guess_from_policy(a.get_policy(), state)
+        ))
+
+        s.plot_multiple_solutions(
+            [s1, s2, s3, s4],
+            labels= [
+                f"Optimal Control (best of one) t={t1:.2f} [s]",
+                f"Optimal Control (best of ten) t={t2:.2f} [s]",
+                f"Actor t={t3:.2f} [s]",
+                f"Optimal Control + Actor initialization t={t4:.2f} [s]",
+            ]
+        )
+
+
 
 
     
