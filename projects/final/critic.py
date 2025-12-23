@@ -23,7 +23,7 @@ class Critic(ABC):
         pass
 
     @abstractmethod
-    def plot(self, system: System):
+    def plot(self, system: System, file_name: str | None = None):
         pass
 
     def __init__(self, dataset: RobotDataset) -> None:
@@ -153,7 +153,7 @@ class SimpleCritic(Critic):
                 return x
         return Model()
 
-    def plot(self, system: System):
+    def plot(self, system: System, file_name: str | None = None):
         x = np.linspace(*EXPLORATION_RANGE, 50)
 
         self.model.eval()
@@ -172,8 +172,11 @@ class SimpleCritic(Critic):
         plt.legend()
         plt.grid(True, linestyle=':', alpha=0.6)
         
-        plt.show()
-        
+        if file_name != None:
+            plt.savefig(file_name)
+        else:
+            plt.show()
+
 
         
 
@@ -210,7 +213,7 @@ class InertiaCritic(Critic):
         
         return Model()
 
-    def plot(self, system: System):
+    def plot(self, system: System, file_name: str | None = None):
         SPACE_POINTS = 10
         VELOCITY_POINTS = 10
         x = np.linspace(*EXPLORATION_RANGE, SPACE_POINTS)
@@ -245,4 +248,7 @@ class InertiaCritic(Critic):
         ax.set_ylabel('Velocity')
         ax.set_zlabel('Cost') #type: ignore
 
-        plt.show()
+        if file_name != None:
+            plt.savefig(file_name)
+        else:
+            plt.show()

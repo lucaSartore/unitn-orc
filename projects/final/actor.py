@@ -25,7 +25,7 @@ class Actor(ABC):
         pass
 
     @abstractmethod
-    def plot(self, system: System):
+    def plot(self, system: System, file_name: str | None = None):
         pass
 
     @abstractmethod
@@ -113,7 +113,7 @@ class SimpleActor(Actor):
         return x.to(DEVICE)
 
 
-    def plot(self, system: System):
+    def plot(self, system: System, file_name: str | None = None):
         x = np.linspace(*EXPLORATION_RANGE, 50)
         self.model.eval()
         with pt.no_grad():
@@ -131,7 +131,10 @@ class SimpleActor(Actor):
         plt.legend()
         plt.grid(True, linestyle=':', alpha=0.6)
         
-        plt.show()
+        if file_name != None:
+            plt.savefig(file_name)
+        else:
+            plt.show()
 
 class InertiaActor(Actor):
     def get_model(self) -> nn.Module:
@@ -164,7 +167,7 @@ class InertiaActor(Actor):
 
 
 
-    def plot(self, system: System):
+    def plot(self, system: System, file_name: str | None = None):
         SPACE_POINTS = 10
         VELOCITY_POINTS = 10
         x = np.linspace(*EXPLORATION_RANGE, SPACE_POINTS)
@@ -199,4 +202,7 @@ class InertiaActor(Actor):
         ax.set_ylabel('Velocity')
         ax.set_zlabel('Control Input') #type: ignore
 
-        plt.show()
+        if file_name != None:
+            plt.savefig(file_name)
+        else:
+            plt.show()

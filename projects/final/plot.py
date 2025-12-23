@@ -16,7 +16,8 @@ def plot_agent_trajectory_with_cost(
     y_margin_percent: float = 0.05,
     y_range: tuple[float, float] | None = None,
     figsize: Tuple[float, float] = (9, 6),
-    title: str = 'Agent Trajectories and Associated Positional Cost Profile'
+    title: str = 'Agent Trajectories and Associated Positional Cost Profile',
+    file_name: str | None = None
 ):
     """
     Generates a Matplotlib plot showing MULTIPLE agent trajectories over time 
@@ -128,7 +129,10 @@ def plot_agent_trajectory_with_cost(
 
     fig.suptitle(title, fontsize=16)
 
-    plt.show()
+    if file_name != None:
+        plt.savefig(file_name)
+    else:
+        plt.show()
 
 
 if __name__ == '__main__':

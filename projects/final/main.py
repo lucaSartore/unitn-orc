@@ -6,7 +6,7 @@ from critic import Critic, InertiaCritic, SimpleCritic
 from system import InertiaSystem, SimpleSystem, System
 from time import time
 
-
+INTERACTIVE: bool = True # if true plots will be shown, otherwise they will be saved
 TEST_TYPE: Literal['simple', 'inertia'] = 'inertia'
 PLOT_CRITIC_FUNCTION: bool = False
 PLOT_ACTOR_FUNCTION: bool = False
@@ -22,6 +22,7 @@ class TestConfig:
 
     
 def main():
+
 
     simple_config = TestConfig(
         system= SimpleSystem,
@@ -60,6 +61,8 @@ def main():
 
 def run_test(config: TestConfig):
 
+    name: str
+    f_name = lambda name: None if INTERACTIVE else name
     
     # initializing the system
     s = config.system() #type: ignore
@@ -71,7 +74,7 @@ def run_test(config: TestConfig):
 
     if PLOT_CRITIC_FUNCTION:
         print("Plotting critic function")
-        c.plot(s)
+        c.plot(s, f_name(f"{TEST_TYPE}_system___critic_function.png"))
 
     # creating the actor 
     a = config.actor(s,c)
@@ -80,12 +83,12 @@ def run_test(config: TestConfig):
 
     if PLOT_ACTOR_FUNCTION:
         print("Plotting actor function")
-        a.plot(s)
+        a.plot(s, f_name(f"{TEST_TYPE}_system___actor_function.png"))
 
 
     print("Plotting actor vs ground trough trajectories")
     policy = a.get_policy()
-    for state in config.states_to_test:
+    for i, state in enumerate(config.states_to_test):
         s1 = s.evaluate_policy(policy, state)
         s2 = s.get_solution(state)
         s.plot_multiple_solutions(
@@ -93,7 +96,8 @@ def run_test(config: TestConfig):
             labels= [
                 "actor",
                 "optimal control"
-            ]
+            ],
+            file_name = f_name(f"./images/{TEST_TYPE}___system__actor_vs_ground_trough___{i}.png")
         )
 
 
@@ -103,7 +107,7 @@ def run_test(config: TestConfig):
         result = to_test()
         end = time()
         return result, end-start
-    for state in config.states_to_test:
+    for i, state in enumerate(config.states_to_test):
         s1, t1 = fn(lambda: s.get_solution(state, 1))
         s2, t2 = fn(lambda: s.get_solution(state, 10))
         s3, t3 = fn(lambda: s.evaluate_policy(a.get_policy(), state))
@@ -120,13 +124,9 @@ def run_test(config: TestConfig):
                 f"Optimal Control (best of ten) t={t2:.2f} [s]",
                 f"Actor t={t3:.2f} [s]",
                 f"Optimal Control + Actor initialization t={t4:.2f} [s]",
-            ]
+            ],
+            file_name = f_name(f"./images/{TEST_TYPE}_system___execution_time_test___{i}.png")
         )
 
-
-
-
-    
 if __name__ == '__main__':
     main()
-
