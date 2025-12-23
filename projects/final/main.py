@@ -74,7 +74,7 @@ def run_test(config: TestConfig):
 
     if PLOT_CRITIC_FUNCTION:
         print("Plotting critic function")
-        c.plot(s, f_name(f"{TEST_TYPE}_system___critic_function.png"))
+        c.plot(s, f_name(f"./images/{TEST_TYPE}_system___critic_function.png"))
 
     # creating the actor 
     a = config.actor(s,c)
@@ -83,7 +83,7 @@ def run_test(config: TestConfig):
 
     if PLOT_ACTOR_FUNCTION:
         print("Plotting actor function")
-        a.plot(s, f_name(f"{TEST_TYPE}_system___actor_function.png"))
+        a.plot(s, f_name(f"./images/{TEST_TYPE}_system___actor_function.png"))
 
 
     print("Plotting actor vs ground trough trajectories")
