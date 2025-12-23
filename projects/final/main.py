@@ -4,8 +4,16 @@ from critic import InertiaCritic, SimpleCritic
 from datetime import datetime
 
 from parameters import DEVICE
-from system import SimpleSystem
+from system import InertiaSystem, SimpleSystem
 def main():
+
+
+    s = InertiaSystem()
+    d = InertiaRobotDataset()
+    c = InertiaCritic(d)
+    c.run()
+    c.plot(s)
+    return
 
     s = SimpleSystem()
     d = SimpleRobotDataset()
@@ -13,8 +21,8 @@ def main():
     
     c.run()
 
-    c.plot(s)
-    return
+    # c.plot(s)
+    # return
 
     # import torch
     # for d in [-1.9, -1.8, -1.7]:

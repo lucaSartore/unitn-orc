@@ -43,7 +43,7 @@ CRITIC_MAX_TRAINING_GENERATIONS: Final[int] = 2000
 
 # learning rate used by the optimizer for the
 # critic
-CRITIC_LEARNING_RATE: Final[float] = 0.0005
+CRITIC_LEARNING_RATE: Final[float] = 0.0001
 
 # batch size using in the critic training process
 CRITIC_BATCH_SIZE: Final[int] = 64

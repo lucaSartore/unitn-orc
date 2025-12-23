@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any, List
 import numpy as np
 import casadi as cs
+from torch.nn import init
 from plot import plot_agent_trajectory_with_cost
 from dataclasses import dataclass
 import random
@@ -13,6 +14,12 @@ class Solution:
     pos_vector: NDArray[np.float64]
     u_vector: NDArray[np.float64]
     score: float
+
+
+@dataclass
+class InitialGuess:
+    state: list[float]
+    control: float
 
 
 class Policy(ABC):
@@ -80,6 +87,23 @@ class System(ABC):
         """
         pass
 
+    def get_initial_guess_from_policy(self, policy: Policy, initial_state: list[float]) -> list[InitialGuess]:
+        state = np.asarray(initial_state)
+        u_vec: list[float] = []
+        s_vec: list[list[float]] = []
+            
+        for _ in range(self.horizon):
+            u = policy.run(state)
+            u_vec.append(u)
+            s_vec.append([float(x) for x in state])
+            transition = self.state_transition_function(state, u)
+            state += np.asarray(transition)
+
+        s_vec.append([float(x) for x in state])
+        u_vec.append(0.0)
+
+        return [InitialGuess(s, u) for s,u in zip(s_vec, u_vec)]
+
     def evaluate_policy(self, policy: Policy, initial_state: list[float]) -> Solution:
         state = np.asarray(initial_state)
         cost = 0
@@ -105,14 +129,19 @@ class System(ABC):
         self.last_solution = Solution(pos_vec, u_vec, float(cost))
         return self.last_solution
 
-    def get_solution(self, initial_state: list[float], num_attempts: int = NUM_SOLUTION_PER_DATAPOINT) -> Solution:
+    def get_solution(
+            self,
+            initial_state: list[float],
+            num_attempts: int = NUM_SOLUTION_PER_DATAPOINT,
+            initial_guess: list[InitialGuess]| None = None
+    ) -> Solution:
         self.last_solution = min(
             [self._get_solution(initial_state) for _ in range(num_attempts)],
             key= lambda x: x.score
         )
         return self.last_solution
 
-    def _get_solution(self, initial_state: list[float]) -> Solution:
+    def _get_solution(self, initial_state: list[float], initial_guess: list[InitialGuess] | None = None) -> Solution:
 
         # state variable s = [x] #position
         s   = cs.SX.sym('s', self.nx)
@@ -133,7 +162,16 @@ class System(ABC):
         X, U = [], []
         for k in range(self.horizon+1): 
             x = opti.variable(self.nx)
-            opti.set_initial(x, random.uniform(*self.s_initialization_range))
+            if initial_guess != None and self.nx == 1:
+                opti.set_initial(x, initial_guess[k].state[0])
+            elif initial_guess != None and self.nx == 2:
+                opti.set_initial(x[0], initial_guess[k].state[0])
+                opti.set_initial(x[1], initial_guess[k].state[1])
+            elif initial_guess == None and self.nx == 1:
+                opti.set_initial(x, random.uniform(*self.s_initialization_range))
+            elif initial_guess == None and self.nx == 2:
+                opti.set_initial(x[0], random.uniform(*self.s_initialization_range))
+
             X += [x]
         for k in range(self.horizon): 
             U += [opti.variable(self.nu)]
@@ -205,6 +243,6 @@ class InertiaSystem(System):
         self.last_solution = sol
         return sol
 
-    def _get_solution(self, initial_state: list[float]) -> Solution:
-        sol = super()._get_solution(initial_state)
+    def _get_solution(self, initial_state: list[float], initial_guess: list[InitialGuess] | None = None) -> Solution:
+        sol = super()._get_solution(initial_state, initial_guess)
         return self.remove_velocity_component_from_solution(sol)
