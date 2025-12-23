@@ -61,7 +61,7 @@ class Actor(ABC):
 
         optim = pt.optim.AdamW(self.model.parameters(), lr=0.00005)
 
-        bar = tqdm(range(3000))
+        bar = tqdm(range(ACTOR_MAX_TRAINING_GENERATIONS))
         for i in bar:
             optim.zero_grad()
             self.critic.zero_grad()
@@ -94,22 +94,16 @@ class SimpleActor(Actor):
         class Model(nn.Module):
             def __init__(self):
                 super(Model, self).__init__()
-                self.l1 = nn.Linear(1,250)
-                self.l2 = nn.Linear(250,250)
-                self.l3 = nn.Linear(250,250)
-                self.l4 = nn.Linear(250,250)
-                self.l5 = nn.Linear(250,1)
+                self.l1 = nn.Linear(1,512)
+                self.l2 = nn.Linear(512,128)
+                self.l3 = nn.Linear(128,1)
 
             def forward(self, x: pt.Tensor):
                 x = self.l1(x)
-                x = F.relu(x)
+                x = F.leaky_relu(x)
                 x = self.l2(x)
-                x = F.relu(x)
+                x = F.leaky_relu(x)
                 x = self.l3(x)
-                x = F.relu(x)
-                x = self.l4(x)
-                x = F.relu(x)
-                x = self.l5(x)
                 return x
         return Model()
 
@@ -120,22 +114,17 @@ class SimpleActor(Actor):
 
 
     def plot(self, system: System):
-        x = np.linspace(*EXPLORATION_RANGE, 10)
-        # Ensure model is in eval mode and move tensor to CPU for plotting
+        x = np.linspace(*EXPLORATION_RANGE, 50)
         self.model.eval()
         with pt.no_grad():
             y_critic = self.model(pt.tensor(x).float().unsqueeze(1).to(DEVICE)).cpu().numpy()
         
-        # Convert the real solution list to a numpy array
         y_real = np.array([system.get_solution([i]).u_vector[0] for i in x])
 
         plt.figure(figsize=(10, 6))
         
-        # Plotting the data
         plt.plot(x, y_real, label='Optimal policy', color='black', linestyle='--')
         plt.plot(x, y_critic, label='Actor policy', color='blue', alpha=0.8)
-        
-        # Formatting the chart
         plt.title('Comparison: Critic Model vs. Real System Solution')
         plt.xlabel('State Space ($x$)')
         plt.ylabel('Value ($V$)')
@@ -149,22 +138,19 @@ class InertiaActor(Actor):
         class Model(nn.Module):
             def __init__(self):
                 super(Model, self).__init__()
-                self.l1 = nn.Linear(2,250)
-                self.l2 = nn.Linear(250,250)
-                self.l3 = nn.Linear(250,250)
-                self.l4 = nn.Linear(250,250)
-                self.l5 = nn.Linear(250,1)
+                self.l1 = nn.Linear(2,1024)
+                self.l2 = nn.Linear(1024,256)
+                self.l3 = nn.Linear(256,64)
+                self.l4 = nn.Linear(64,1)
 
             def forward(self, x: pt.Tensor):
                 x = self.l1(x)
-                x = F.relu(x)
+                x = F.leaky_relu(x)
                 x = self.l2(x)
-                x = F.relu(x)
+                x = F.leaky_relu(x)
                 x = self.l3(x)
-                x = F.relu(x)
+                x = F.leaky_relu(x)
                 x = self.l4(x)
-                x = F.relu(x)
-                x = self.l5(x)
                 return x
         return Model()
 
@@ -179,8 +165,8 @@ class InertiaActor(Actor):
 
 
     def plot(self, system: System):
-        SPACE_POINTS = 5
-        VELOCITY_POINTS = 5
+        SPACE_POINTS = 10
+        VELOCITY_POINTS = 10
         x = np.linspace(*EXPLORATION_RANGE, SPACE_POINTS)
         v = np.linspace(*VELOCITY_RANGE, VELOCITY_POINTS)
 

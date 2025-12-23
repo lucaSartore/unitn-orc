@@ -211,8 +211,8 @@ class InertiaCritic(Critic):
         return Model()
 
     def plot(self, system: System):
-        SPACE_POINTS = 5
-        VELOCITY_POINTS = 5
+        SPACE_POINTS = 10
+        VELOCITY_POINTS = 10
         x = np.linspace(*EXPLORATION_RANGE, SPACE_POINTS)
         v = np.linspace(*VELOCITY_RANGE, VELOCITY_POINTS)
 

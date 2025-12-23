@@ -39,7 +39,7 @@ GENERATED_POINTS_PER_CORE: Final[int] = 50
 
 # maximum number of generation if patience doesn't terminate
 # the training earlier
-CRITIC_MAX_TRAINING_GENERATIONS: Final[int] = 200
+CRITIC_MAX_TRAINING_GENERATIONS: Final[int] = 2000
 
 # learning rate used by the optimizer for the
 # critic
@@ -50,11 +50,11 @@ CRITIC_BATCH_SIZE: Final[int] = 64
 
 # maximum number of generation if patience doesn't terminate
 # the training earlier
-ACTOR_MAX_TRAINING_GENERATIONS: Final[int] = 10_000
+ACTOR_MAX_TRAINING_GENERATIONS: Final[int] = 5000
 
 # learning rate used by the optimizer for the
 # actor
 ACTOR_LEARNING_RATE: Final[float] = 0.0005
 
 # batch size using in the actor training process
-ACTOR_BATCH_SIZE: Final[int] = 512
+ACTOR_BATCH_SIZE: Final[int] = 2048
