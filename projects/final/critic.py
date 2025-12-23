@@ -166,7 +166,7 @@ class SimpleCritic(Critic):
 
         plt.figure(figsize=(10, 6))
         
-        plt.plot(x, y_real, label='Ground Truth (Real)', color='black', linestyle='--')
+        plt.plot(x, y_real, label='Ground Truth', color='black', linestyle='--')
         plt.plot(x, y_critic, label='Critic Approximation', color='blue', alpha=0.8)
         plt.title('Comparison: Critic Model vs. Real System Solution')
         plt.xlabel('State Space ($x$)')
@@ -216,6 +216,7 @@ class InertiaCritic(Critic):
         plt.style.use('_mpl-gallery')
         x, v = np.meshgrid(x, v)
 
+
         self.model.eval().to(DEVICE)
         with pt.no_grad():
             xt = pt.tensor(x).float().to(DEVICE).reshape((SPACE_POINTS * VELOCITY_POINTS, 1))
@@ -232,13 +233,13 @@ class InertiaCritic(Critic):
                 y_gt[i,j] = system.get_solution(state).score
 
         
-        # Plot the surface
-        fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
-        ax.plot_surface(x, v, y_critic_numpy, cmap=cm.Blues) #type: ignore
-        ax.plot_surface(x, v, y_gt, cmap=cm.Reds) #type: ignore
+        _, ax = plt.subplots(subplot_kw={"projection": "3d"})
+        ax.plot_surface(x, v, y_critic_numpy, color='blue', alpha=0.5, label='Critic Approximation') #type: ignore
+        ax.plot_surface(x, v, y_gt, color='red', alpha=0.5, label='Ground Truth') #type: ignore
 
-        ax.set(xticklabels=[],
-               yticklabels=[],
-               zticklabels=[])
+        ax.legend()
+        ax.set_xlabel('Position')
+        ax.set_ylabel('Velocity')
+        ax.set_zlabel('Cost') #type: ignore
 
         plt.show()
