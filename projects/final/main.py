@@ -61,7 +61,6 @@ def main():
 
 def run_test(config: TestConfig):
 
-    name: str
     f_name = lambda name: None if INTERACTIVE else name
     
     # initializing the system
@@ -97,7 +96,7 @@ def run_test(config: TestConfig):
                 "actor",
                 "optimal control"
             ],
-            file_name = f_name(f"./images/{TEST_TYPE}___system__actor_vs_ground_trough___{i}.png")
+            file_name = f_name(f"./images/{TEST_TYPE}_system___actor_vs_ground_trough___{i}.png")
         )
 
 
