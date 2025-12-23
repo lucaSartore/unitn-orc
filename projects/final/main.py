@@ -1,25 +1,26 @@
-from actor import SimpleActor
+from actor import InertiaActor, SimpleActor
 from dataset import InertiaRobotDataset, SimpleRobotDataset
 from critic import InertiaCritic, SimpleCritic
 from datetime import datetime
+import torch
 
 from parameters import DEVICE
 from system import InertiaSystem, SimpleSystem
 def main():
 
-
+    torch.autograd.set_detect_anomaly(True)
     s = InertiaSystem()
     d = InertiaRobotDataset()
     c = InertiaCritic(d)
     c.run()
-    c.plot(s)
-    return
 
-    s = SimpleSystem()
-    d = SimpleRobotDataset()
-    c = SimpleCritic(d)
-    
-    c.run()
+    # c.plot(s)
+    # return
+
+    # s = SimpleSystem()
+    # d = SimpleRobotDataset()
+    # c = SimpleCritic(d)
+    # c.run()
 
     # c.plot(s)
     # return
@@ -31,15 +32,20 @@ def main():
     #     print(f"system score: ", s.get_solution([d]).score)
     # return
 
-    a = SimpleActor(s,c)
+    # a = SimpleActor(s,c)
+    # a.run()
+
+    a = InertiaActor(s,c)
     a.run()
 
     # a.plot(s)
 
     policy = a.get_policy()
     for d in [-1.9, 1.0, 2.0, 0.5, -1.2]:
-        s1 = s.evaluate_policy(policy, [d])
-        s2 = s.get_solution([d])
+        state = [d,0]
+        # state = [d]
+        s1 = s.evaluate_policy(policy, state)
+        s2 = s.get_solution(state)
         s.plot_multiple_solutions(
             [s1, s2],
             labels= [

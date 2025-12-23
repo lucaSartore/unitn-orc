@@ -138,9 +138,10 @@ class SimpleCritic(Critic):
         class Model(nn.Module):
             def __init__(self):
                 super(Model, self).__init__()
-                self.l1 = nn.Linear(1,1024)
-                self.l2 = nn.Linear(1024,256)
-                self.l3 = nn.Linear(256,1)
+                self.l1 = nn.Linear(1,2048)
+                self.l2 = nn.Linear(2048,1024)
+                self.l3 = nn.Linear(1024,256)
+                self.l4 = nn.Linear(256,1)
 
             def forward(self, x: pt.Tensor):
                 x = pt.clip(x, *EXPLORATION_RANGE)
@@ -149,6 +150,8 @@ class SimpleCritic(Critic):
                 x = self.l2(x)
                 x = F.leaky_relu(x)
                 x = self.l3(x)
+                x = F.leaky_relu(x)
+                x = self.l4(x)
                 return x
         return Model()
 
@@ -181,19 +184,26 @@ class InertiaCritic(Critic):
         class Model(nn.Module):
             def __init__(self):
                 super(Model, self).__init__()
-                self.l1 = nn.Linear(2,50)
-                self.l2 = nn.Linear(50,50)
-                self.l3 = nn.Linear(50,50)
-                self.l4 = nn.Linear(50,1)
+                self.l1 = nn.Linear(2,1024)
+                self.l2 = nn.Linear(1024,256)
+                self.l3 = nn.Linear(256,1)
 
             def forward(self, x: pt.Tensor):
+                min = pt.zeros(size=x.shape, dtype=pt.float32)
+                max = pt.zeros(size=x.shape, dtype=pt.float32)
+                min[:,0] = EXPLORATION_RANGE[0]
+                min[:,1] = VELOCITY_RANGE[0]
+                max[:,0] = EXPLORATION_RANGE[1]
+                max[:,1] = VELOCITY_RANGE[1]
+
+                max = max.to(DEVICE)
+                min = min.to(DEVICE)
+                x = pt.clip(x, min, max)
                 x = self.l1(x)
-                x = F.relu(x)
+                x = F.leaky_relu(x)
                 x = self.l2(x)
-                x = F.relu(x)
+                x = F.leaky_relu(x)
                 x = self.l3(x)
-                x = F.relu(x)
-                x = self.l4(x)
                 return x
         return Model()
 
@@ -224,37 +234,11 @@ class InertiaCritic(Critic):
         
         # Plot the surface
         fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
-        ax.plot_surface(x, v, y_critic_numpy, cmap=cm.Blues)
-        ax.plot_surface(x, v, y_gt, cmap=cm.Reds)
+        ax.plot_surface(x, v, y_critic_numpy, cmap=cm.Blues) #type: ignore
+        ax.plot_surface(x, v, y_gt, cmap=cm.Reds) #type: ignore
 
         ax.set(xticklabels=[],
                yticklabels=[],
                zticklabels=[])
 
         plt.show()
-
-
-        # self.model.eval()
-        # with pt.no_grad():
-        #     y_critic = self.model(pt.tensor(x).float().unsqueeze(1).to(DEVICE)).cpu().numpy()
-
-
-        # Plot the surface
-        # fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
-        # ax.plot_surface(X, Y, Z, vmin=Z.min() * 2, cmap=cm.Blues)
-
-        
-        # y_real = np.array([system.get_solution([i]).score for i in x])
-        #
-        # plt.figure(figsize=(10, 6))
-        #
-        # plt.plot(x, y_real, label='Ground Truth (Real)', color='black', linestyle='--')
-        # plt.plot(x, y_critic, label='Critic Approximation', color='blue', alpha=0.8)
-        # plt.title('Comparison: Critic Model vs. Real System Solution')
-        # plt.xlabel('State Space ($x$)')
-        # plt.ylabel('Value ($V$)')
-        # plt.legend()
-        # plt.grid(True, linestyle=':', alpha=0.6)
-        #
-        # plt.show()
-        #

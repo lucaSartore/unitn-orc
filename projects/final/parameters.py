@@ -39,7 +39,7 @@ GENERATED_POINTS_PER_CORE: Final[int] = 50
 
 # maximum number of generation if patience doesn't terminate
 # the training earlier
-CRITIC_MAX_TRAINING_GENERATIONS: Final[int] = 2000
+CRITIC_MAX_TRAINING_GENERATIONS: Final[int] = 200
 
 # learning rate used by the optimizer for the
 # critic
