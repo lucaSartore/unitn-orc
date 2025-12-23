@@ -38,7 +38,9 @@ def main():
     a = InertiaActor(s,c)
     a.run()
 
+
     # a.plot(s)
+    # return
 
     policy = a.get_policy()
     for d in [-1.9, 1.0, 2.0, 0.5, -1.2]:

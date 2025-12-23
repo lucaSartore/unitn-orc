@@ -52,10 +52,7 @@ class Actor(ABC):
 
         return ActorBasedPolicy(self.model)
 
-
-
     def train(self):
-        
         self.critic = self.critic.eval()
         self.model = self.model.train()
 
@@ -72,16 +69,12 @@ class Actor(ABC):
             input = self.get_random_state(ACTOR_BATCH_SIZE)
             action: pt.Tensor = self.model(input)
 
-            # state_cost = self.system.cost_function(input, action)
-            # state_cost = action.T @ action
-            input_cost = 0.5 * action * action
-            x = input[:,0]
+            state_cost = self.system.cost_function(input, action)
 
-            position_cost = (x - 1.9) * (x - 1.0) * (x - 0.6) * (x + 0.5) * (x + 1.2) * (x + 2.1) 
-            next_state = input + action * 0.02
+            next_state = input + pt.hstack(self.system.state_transition_function(input, action)).to(DEVICE)
             next_state_cost: pt.Tensor = self.critic(next_state)
 
-            total_cost = next_state_cost + input_cost + position_cost
+            total_cost = next_state_cost + state_cost
 
             loss = pt.sum(total_cost) / ACTOR_BATCH_SIZE
 
@@ -89,21 +82,8 @@ class Actor(ABC):
             
             optim.step()
 
-
             if i%10 == 0:
-                with pt.no_grad():
-                    optimal_cost = self.critic(input)
-                    policy_cost = input_cost + self.critic(next_state)
-
-                    optimality_loss = policy_cost - optimal_cost
-                    optimality_loss = pt.sum(optimality_loss) / ACTOR_BATCH_SIZE
-
-                    # print(optimality_loss.item())
-
-                    bar.set_description(f"loss={optimality_loss.item():.2f}")
-
-                # print(loss.item())
-                # bar.set_description(f"loss={loss.item():.2f}")
+                bar.set_description(f"loss={loss.item():.2f}")
 
 
             

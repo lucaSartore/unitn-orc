@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any, List
 import numpy as np
 import casadi as cs
+import torch
 from torch.nn import init
 from plot import plot_agent_trajectory_with_cost
 from dataclasses import dataclass
@@ -227,12 +228,17 @@ class InertiaSystem(System):
 
     def cost_function(self, x, u):
         # need to pass only the position (not the velocity)
-        if type(x) != float:
+        if type(x) == torch.Tensor:
+            x = x[:,0]
+        elif type(x) != float:
             x = x[0]
         return super().cost_function(x,u)
 
     def state_transition_function(self, s, u):
-        v = s[1]
+        if type(s) == torch.Tensor:
+            v = s[:,1].unsqueeze(1)
+        else:
+            v = s[1]
         return [v*self.dt + 0.5 * u * self.dt**2, u*self.dt]
 
     # the inertia-system state is composed of two values (position and velocity)

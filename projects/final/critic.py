@@ -138,20 +138,18 @@ class SimpleCritic(Critic):
         class Model(nn.Module):
             def __init__(self):
                 super(Model, self).__init__()
-                self.l1 = nn.Linear(1,2048)
-                self.l2 = nn.Linear(2048,1024)
-                self.l3 = nn.Linear(1024,256)
-                self.l4 = nn.Linear(256,1)
+                self.l1 = nn.Linear(1,1024)
+                self.l2 = nn.Linear(1024,256)
+                self.l3 = nn.Linear(256,1)
 
             def forward(self, x: pt.Tensor):
                 x = pt.clip(x, *EXPLORATION_RANGE)
+
                 x = self.l1(x)
                 x = F.leaky_relu(x)
                 x = self.l2(x)
                 x = F.leaky_relu(x)
                 x = self.l3(x)
-                x = F.leaky_relu(x)
-                x = self.l4(x)
                 return x
         return Model()
 
@@ -185,8 +183,9 @@ class InertiaCritic(Critic):
             def __init__(self):
                 super(Model, self).__init__()
                 self.l1 = nn.Linear(2,1024)
-                self.l2 = nn.Linear(1024,256)
-                self.l3 = nn.Linear(256,1)
+                self.l2 = nn.Linear(1024,512)
+                self.l3 = nn.Linear(512,256)
+                self.l4 = nn.Linear(256,1)
 
             def forward(self, x: pt.Tensor):
                 min = pt.zeros(size=x.shape, dtype=pt.float32)
@@ -199,12 +198,16 @@ class InertiaCritic(Critic):
                 max = max.to(DEVICE)
                 min = min.to(DEVICE)
                 x = pt.clip(x, min, max)
+
                 x = self.l1(x)
                 x = F.leaky_relu(x)
                 x = self.l2(x)
                 x = F.leaky_relu(x)
                 x = self.l3(x)
+                x = F.leaky_relu(x)
+                x = self.l4(x)
                 return x
+        
         return Model()
 
     def plot(self, system: System):
