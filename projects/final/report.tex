@@ -27,11 +27,11 @@ This works aims to develop a neural network that approximate the output of an op
 
 The system selected is pretty straightforward, a robot moves on a 1D space. At each iteration the robot
 get a cost that is proportional to the squared control input, and to a positional cost.
-The objective of the robot is to plan a trajectory with the least possible cost.
+The objective of the robot is to plan a trajectory with the lowest possible cost.
 
 The tests where made with two systems, one named ``Simple'' where the robot's velocity is imply proportional
-to the control's input, and one named ``Inertia'' where the robot has an inertia, and the 
-control input thus become acceleration.
+to the control input, and one named ``Inertia'' where the robot has an inertia, and the 
+control input thus become an acceleration.
 
 The system is trained using a Critic-Actor paradigm, and the result is evaluated in two main ways:
 \begin{itemize}
@@ -119,7 +119,7 @@ the solver should converge in $-1.8$ as it is both closer, and lower cost.
 However the solver prefer to ``walk uphill'' the cost's gradient and end up in a worst spot.
 
 This is because no initial guess was provided, and the state variables where therefore
-initialized at zero, making the solver biased
+initialized at zero, making the solver biased.
 
 \begin{figure}[H]
 \centering
@@ -128,7 +128,7 @@ initialized at zero, making the solver biased
 \label{fig:suboptimal_sol}
 \end{figure}
 
-To solve this issue the state variable where initialized with random values within specific range,
+To solve this issue the state variable where initialized with random values within a specific range,
 this made it more more likely that the solver selected a different minimum than the one
 in zero. However there was still an high variability on where the solver would end up (even with
 the initial state being exactly the same), so to create a more accurate dataset
@@ -157,19 +157,19 @@ The training of the critic was done using the following parameters:
     \item \textbf{Optimizer:} AdamW with a learning rate of $10^{-4}$
     \item \textbf{LR Scheduler:} The learning rate was scheduled
         so that it was cut in half every time there where 10 iterations without any improvement.
-    \item \textbf{Train-Test split} The training set was split 90/10 for training and validation
-    \item \textbf{Batch size} 64 (other options where tested, but the difference seem small to none)
+    \item \textbf{Train-Test split} The dataset was split 90/10 for training and validation
+    \item \textbf{Batch size} 64 (other options where tested, but the difference seemed minimal)
     \item \textbf{Iterations} Max iterations where set to 2000 (even tho the the algorithm was
 often terminated after about 500 iterations for lack of improvements).
 
 
 \end{itemize}
 The final validation losses works out to be around 1.0 and 3.3 for the ``simple'' and ``inertia'' systems respectively,
-while the training time was approximately 1 minute 45 seconds on an RTX 3060 ti GUP
+while the training time was approximately 1 minute 45 seconds on an RTX 3060 ti GUP.
 
 The sizes of the networks where chosen by gradually increasing the size of the various layers
 until the improvement was marginal. A similar logic was applied to the number of layers.
-A ``shrinking'' architecture (where the layers start wide and sering once they get closer to the output)
+A ``shrinking'' architecture (where the layers start wide and shrink once they get closer to the output)
 was selected, as it is common doing in regression problems.
 
 \subsection{Simple Critic}
@@ -228,7 +228,7 @@ To solve this issue the the critic was edited so that the input is clipped if ou
 
 The training took approximately 11 seconds on an RTX 3060 ti GPU. The final losses are not reported
 here as they are hard to interpret (given that they depends on the value function).
-The size and shape of the network was selected in the same way that the critic's one was selected
+The size and shape of the network where selected in the same way that the critic's one where selected.
 
 
 \subsection{Simple Actor}
@@ -253,7 +253,7 @@ strategy changes from moving towards the minimum around $-1.8$ to moving to the 
 around $1.8$.
 
 This is potentially solvable using larger networks, but that would undermine the main
-advantage of this approach which is speed.
+advantage of this approach which is speed, and also potentially require a larger dataset.
 
 \subsection{Inertia Actor}
 
@@ -285,10 +285,10 @@ there is a small divergence from the steady state reached by the two control met
 
 
 This can be explained by locking at figure \ref{fig:imperfect_min_point} that shows 
-how the policy's value function has a local minimum that is slightly shifted
+how the critic's value function has a local minimum that is slightly shifted
 with respect to the real value function. And issue is reflected in the policy learned.
 
-Initially this issue was much larger, and was solved by simply increasing the size of the policy network.
+Initially this issue was much larger, and was solved by simply increasing the size of the critic network.
 This trick stopped working at a certain point because the limitation started to become the
 dataset's size.
 \begin{figure}[H]
@@ -340,7 +340,7 @@ horizon ahead the adjustment cost is worth paying, resulting in a straighter tra
 \begin{figure}[H]
 \centering
 \begin{tabular}{cc}
-  \includegraphics[width=80mm]{images/inertia_system___actor_vs_ground_trough___0.png} &   \includegraphics[width=70mm]{images/inertia_system___actor_vs_ground_trough___1.png} \\
+  \includegraphics[width=70mm]{images/inertia_system___actor_vs_ground_trough___0.png} &   \includegraphics[width=70mm]{images/inertia_system___actor_vs_ground_trough___1.png} \\
   \includegraphics[width=70mm]{images/inertia_system___actor_vs_ground_trough___2.png} &   \includegraphics[width=70mm]{images/inertia_system___actor_vs_ground_trough___3.png} \\
   \includegraphics[width=70mm]{images/inertia_system___actor_vs_ground_trough___4.png} &   \includegraphics[width=70mm]{images/inertia_system___actor_vs_ground_trough___5.png} \\
 \multicolumn{2}{c}{\includegraphics[width=70mm]{images/inertia_system___actor_vs_ground_trough___6.png} }\\
@@ -362,11 +362,11 @@ The considered systems are the following:
 \begin{itemize}
     \item \textbf{Optimal Control (best of one):} This method solve one optimal control problem and take the output.
         It suffers from the fact that it some-times find solutions that are locally optimal (for the
-        reasons described in section \ref{sec:optimiaztion_issues})
+        reasons described in section \ref{sec:optimiaztion_issues}).
     \item \textbf{Optimal Control (best of ten):} This method solve 10 optimal control problems
         and pick the best solution. It is slower but it does not suffers from the same issue 
-        as the previous option (or at least the likelihood of that issue occurring is much lower)
-    \item \textbf{Actor:} This is the simple implementation of the actor to calculate the trajectory
+        as the previous option (or at least the likelihood of that issue occurring is much lower).
+    \item \textbf{Actor:} This strategy simply involve using the actor to calculate the trajectory.
     \item \textbf{Optimal Control + actor initialization:} This method uses teh actor to calculate
         an initial guess, and then solve one optimal control problem with initialized variables.
         This solution also doesn't suffer from the issue plaguing the first one.
@@ -375,7 +375,7 @@ The considered systems are the following:
 \subsection{results}
 
 The trajectories with execution times can be seen in figure \ref{fig:simple_system_exec_time} and \ref{fig:inertia_system_exec_time}.
-In the table below you can instead see a brief summary of how the various methods.
+In the table below you can instead see a brief summary of how the various methods performed.
 In general we can say that the last two methods are the ``pareto optimal'' one.
 
 The use of an initial guess in the optimal control did provide a tiny speed improvement to the solver,
