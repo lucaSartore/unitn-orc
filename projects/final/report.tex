@@ -23,13 +23,13 @@
 \section{Introduction}
 
 
-This works aims to develop a neural network that approximate the output of an optimal control problem.
+This work aims to develop a neural network that approximate the output of an optimal control problem.
 
 The system selected is pretty straightforward, a robot moves on a 1D space. At each iteration the robot
 get a cost that is proportional to the squared control input, and to a positional cost.
 The objective of the robot is to plan a trajectory with the lowest possible cost.
 
-The tests where made with two systems, one named ``Simple'' where the robot's velocity is imply proportional
+The tests where made with two systems, one named ``Simple'' where the robot's velocity is proportional
 to the control input, and one named ``Inertia'' where the robot has an inertia, and the 
 control input thus become an acceleration.
 
@@ -70,7 +70,7 @@ $$
 
 Then the optimal control problem can be defined in simple therms with the equation underneath.
 
-Notable components are $l$ (the cost function), that depends on the squared input as well as 
+Notable components are $l$ (the cost function), that depends on the squared input plus 
 a positional cost, as well as $f$ which represent the dynamics of the system (and is 
 therefore dependent on the selected system)
 $$
@@ -129,7 +129,7 @@ initialized at zero, making the solver biased.
 \end{figure}
 
 To solve this issue the state variable where initialized with random values within a specific range,
-this made it more more likely that the solver selected a different minimum than the one
+this made it more likely that the solver selected a different minimum than the one
 in zero. However there was still an high variability on where the solver would end up (even with
 the initial state being exactly the same), so to create a more accurate dataset
 each input point was solved 10 times, and only the best solution was added to the dataset.
@@ -221,10 +221,10 @@ The parameters used during training are the following:
     \item \textbf{Iterations} 5000 (where each iteration had only one batch with the input state being randomly generated)
 \end{itemize}
 
-Initially the training process did not work at all, and the reason turns out to be interesting:
+Initially the training process did not work at all, and the reason why turns out to be interesting:
 During training the state ended up outside the range that was considered ``valid'' for the critic,
 and therefore the output was inconsistent.
-To solve this issue the the critic was edited so that the input is clipped if outside the validity range.
+To solve this issue the the critic was modified so that the input is clipped if outside the validity range.
 
 The training took approximately 11 seconds on an RTX 3060 ti GPU. The final losses are not reported
 here as they are hard to interpret (given that they depends on the value function).
@@ -324,7 +324,7 @@ direction).
 
 It is also worth noting that the closer the robot get to the end, the more
 the behavior of the optimal control solver diverges from the one of the actor.
-This is because the actor take one action at a time, and is considering
+This is because the actor take one action at a time, and is trained to consider
 a full-length horizon for each action.
 Meanwhile the optimal control solve the problem once, and the closer it get to the
 horizon end the shorter the considered horizon become.
@@ -356,18 +356,18 @@ horizon ahead the adjustment cost is worth paying, resulting in a straighter tra
 \section{Solving time of different methods}
 
 The last step for this report is comparing four different solving
-method to see the execution times and the trajectories accuracy compared.
+methods to see the execution times and the trajectories accuracy compared.
 The considered systems are the following:
 
 \begin{itemize}
     \item \textbf{Optimal Control (best of one):} This method solve one optimal control problem and take the output.
-        It suffers from the fact that it some-times find solutions that are locally optimal (for the
+        It suffers from the fact that it sometimes find solutions that are locally (but not globally) optimal (for the
         reasons described in section \ref{sec:optimiaztion_issues}).
     \item \textbf{Optimal Control (best of ten):} This method solve 10 optimal control problems
         and pick the best solution. It is slower but it does not suffers from the same issue 
         as the previous option (or at least the likelihood of that issue occurring is much lower).
     \item \textbf{Actor:} This strategy simply involve using the actor to calculate the trajectory.
-    \item \textbf{Optimal Control + actor initialization:} This method uses teh actor to calculate
+    \item \textbf{Optimal Control + actor initialization:} This method uses the actor to calculate
         an initial guess, and then solve one optimal control problem with initialized variables.
         This solution also doesn't suffer from the issue plaguing the first one.
 \end{itemize}
